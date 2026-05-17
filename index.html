@@ -316,7 +316,18 @@
     <button class="nav-btn" onclick="showPage('home')">← Jobs</button>
     <button class="nav-btn primary" onclick="showPage('recs')">Recommendations →</button>
   </div>
-  <iframe id="pdf-frame" src="" title="Home Design Brief"></iframe>
+  <div id="assess-body" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--tan);gap:20px;padding:40px;">
+    <div style="text-align:center;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Home Design Brief</div>
+      <div style="font-family:var(--serif);font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px;" id="assess-customer-name"></div>
+      <div style="font-size:13px;color:var(--muted);" id="assess-customer-addr"></div>
+    </div>
+    <button id="open-pdf-btn" onclick="openPdf()" style="display:flex;align-items:center;gap:10px;background:var(--navy);color:white;border:none;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:16px 28px;cursor:pointer;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+      Open Home Assessment
+    </button>
+    <div style="font-size:11px;color:var(--muted);">Opens in full screen — tap Back to return</div>
+  </div>
 </div>
 
 <!-- ════════ PAGE 3: RECOMMENDATIONS ════════ -->
@@ -386,7 +397,8 @@ let S = {
   pricing: null,
   config: null,       // loaded quote_config.json
   editingIdx: null,   // which option (0/1/2) is being configured
-  renderUrls: {}      // { good, better, best } → download URLs
+  renderUrls: {},      // { good, better, best } → download URLs
+  pdfBlobUrl: null
 };
 
 // ═══ AUTH ══════════════════════════════════════════════════
@@ -496,11 +508,13 @@ async function openJob() {
     if (pdfDownloadUrl) {
       const pdfResp = await fetch(pdfDownloadUrl);
       const pdfBlob = await pdfResp.blob();
-      document.getElementById('pdf-frame').src = URL.createObjectURL(pdfBlob);
+      S.pdfBlobUrl = URL.createObjectURL(pdfBlob);
     } else {
-      document.getElementById('pdf-frame').src = '';
+      S.pdfBlobUrl = null;
     }
     document.getElementById('assess-job-id').textContent = jobId;
+    document.getElementById('assess-customer-name').textContent = S.config.customer || jobId;
+    document.getElementById('assess-customer-addr').textContent = S.config.address || '';
     // Pre-load render URLs
     S.renderUrls = {};
     for (const tier of ['good','better','best']) {
@@ -809,6 +823,14 @@ function hideLoading() { document.getElementById('loading-overlay').classList.re
 function showError(msg) {
   const el = document.getElementById('home-error');
   el.textContent = msg; el.style.display = 'block';
+}
+
+function openPdf() {
+  if (S.pdfBlobUrl) {
+    window.open(S.pdfBlobUrl, '_blank');
+  } else {
+    alert('Home Assessment not found in this job folder.');
+  }
 }
 
 function fmt(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
