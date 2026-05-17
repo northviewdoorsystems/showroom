@@ -342,7 +342,7 @@
       <div class="nav-job-id" id="recs-address"></div>
     </div>
     <div class="nav-spacer"></div>
-    <button class="nav-btn" onclick="showPage('assessment')">← Assessment</button>
+    <button class="nav-btn" onclick="if(S.pdfBlobUrl)window.open(S.pdfBlobUrl,'_blank')">↗ Home Assessment</button>
   </div>
   <div class="recs-body" id="recs-body"></div>
 </div>
@@ -521,7 +521,8 @@ async function openJob() {
       S.renderUrls[tier] = await getDownloadUrl(drivePath(jobId, `render_${tier}.png`));
     }
     hideLoading();
-    showPage('assessment');
+    if (S.pdfBlobUrl) window.open(S.pdfBlobUrl, '_blank');
+    showPage('recs');
   } catch(e) {
     hideLoading();
     showError(e.message);
