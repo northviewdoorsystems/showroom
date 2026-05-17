@@ -368,7 +368,7 @@ const BASE_SEGMENTS = ['Documents','For-Profit Ventures','Northview Doors& Syste
 
 // ═══ MSAL ══════════════════════════════════════════════════
 const msalInstance = new msal.PublicClientApplication({
-  auth: { clientId: CLIENT_ID, authority: 'https://login.microsoftonline.com/consumers', redirectUri: REDIRECT_URI },
+  auth: { clientId: CLIENT_ID, authority: 'https://login.microsoftonline.com/common', redirectUri: REDIRECT_URI },
   cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: true }
 });
 const SCOPES = ['Files.Read'];
