@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Northview ShowRoom</title>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #152848; --red: #8B1E1E; --tan: #F5F3EE;
+      --border: #D8D4CA; --body: #3A3A36; --muted: #7A786E; --white: #fff;
+      --serif: 'Libre Baskerville', Georgia, serif;
+      --sans:  'Source Sans 3', system-ui, sans-serif;
+    }
+    html, body { font-family: var(--sans); color: var(--body); background: var(--tan);
+      height: 100%; overflow: hidden; -webkit-text-size-adjust: 100%; }
+
+    /* ── PAGES ── */
+    .page { display: none; position: fixed; inset: 0; overflow: hidden; flex-direction: column; }
+    .page.active { display: flex; }
+
+    /* ── LOADING OVERLAY ── */
+    #loading-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(21,40,72,0.82);
+      z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+    }
+    #loading-overlay.active { display: flex; }
+    .spinner {
+      width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.2);
+      border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em; text-transform: uppercase; }
+
+    /* ── SHARED NAV BAR ── */
+    .nav-bar {
+      background: var(--white); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 20px;
+      min-height: 56px; flex-shrink: 0; gap: 12px;
+    }
+    .nav-bar-logo { height: 30px; width: auto; }
+    .nav-bar-logo-text { font-family: var(--serif); font-weight: 700; font-size: 14px; color: var(--navy); }
+    .nav-divider { width: 1px; height: 28px; background: var(--border); }
+    .nav-job-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); }
+    .nav-job-id { font-size: 13px; font-weight: 700; color: var(--navy); }
+    .nav-spacer { flex: 1; }
+    .nav-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: none; border: 1px solid var(--border);
+      font-family: var(--sans); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--body);
+      padding: 8px 14px; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .nav-btn:hover { border-color: var(--navy); color: var(--navy); }
+    .nav-btn.primary { background: var(--navy); color: white; border-color: var(--navy); }
+    .nav-btn.primary:hover { background: #1e3a6a; }
+
+    /* ════════════════════════════════════════
+       PAGE 1 — HOME
+    ════════════════════════════════════════ */
+    #page-home { background: var(--navy); align-items: center; justify-content: center; }
+    .home-card {
+      background: var(--white); padding: 52px 56px 48px;
+      max-width: 460px; width: 90%; text-align: center;
+    }
+    .home-logo { max-width: 260px; height: auto; margin: 0 auto 28px; display: block; }
+    .home-logo-fallback {
+      display: none; font-family: var(--serif); font-weight: 700; font-size: 22px;
+      color: var(--navy); letter-spacing: 0.02em; margin-bottom: 4px;
+    }
+    .home-eyebrow {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--red); margin-bottom: 10px;
+    }
+    .home-title {
+      font-family: var(--serif); font-size: 26px; font-weight: 700; color: var(--navy);
+      line-height: 1.2; margin-bottom: 32px;
+    }
+    .home-field-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted); text-align: left; margin-bottom: 6px; display: block;
+    }
+    .home-select, .home-signin-btn {
+      width: 100%; font-family: var(--sans); font-size: 14px; font-weight: 600;
+      padding: 13px 16px; border-radius: 0; appearance: none; -webkit-appearance: none;
+      cursor: pointer; outline: none; display: block;
+    }
+    .home-select {
+      border: 1px solid var(--border); background: var(--tan); color: var(--navy);
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237A786E' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+      margin-bottom: 16px;
+    }
+    .home-open-btn {
+      width: 100%; background: var(--navy); color: white; border: none;
+      font-family: var(--sans); font-size: 12px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; padding: 14px;
+      cursor: pointer; transition: background 0.15s; margin-bottom: 0;
+    }
+    .home-open-btn:hover { background: #1e3a6a; }
+    .home-open-btn:disabled { background: var(--border); cursor: default; }
+    .home-signin-btn {
+      background: var(--red); color: white; border: none;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 14px; transition: background 0.15s; margin-bottom: 0;
+    }
+    .home-signin-btn:hover { background: #a32424; }
+    .home-user-row {
+      margin-top: 20px; font-size: 11px; color: var(--muted);
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+    }
+    .home-signout { background: none; border: none; font-family: var(--sans);
+      font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; }
+    .home-error { margin-top: 16px; font-size: 12px; color: var(--red);
+      background: #fdf0f0; border: 1px solid #f0c8c8; padding: 10px 14px; text-align: left; }
+
+    /* ════════════════════════════════════════
+       PAGE 2 — ASSESSMENT
+    ════════════════════════════════════════ */
+    #page-assessment { }
+    #pdf-frame {
+      flex: 1; width: 100%; border: none; background: #525659;
+    }
+
+    /* ════════════════════════════════════════
+       PAGE 3 — RECOMMENDATIONS
+    ════════════════════════════════════════ */
+    #page-recs { background: var(--tan); }
+    .recs-body {
+      flex: 1; overflow-y: auto; padding: 16px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+      align-items: start;
+    }
+    .rec-card { background: var(--white); border: 1px solid var(--border); display: flex; flex-direction: column; }
+    .rec-render-wrap {
+      position: relative; width: 100%; padding-top: 56.25%; background: var(--tan);
+      overflow: hidden; border-bottom: 1px solid var(--border);
+    }
+    .rec-render-img {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .rec-render-placeholder {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 6px;
+    }
+    .rec-render-placeholder span {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--border);
+    }
+    .rec-card-body { padding: 16px 18px; flex: 1; display: flex; flex-direction: column; }
+    .rec-tier-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--red); margin-bottom: 8px;
+    }
+    .rec-model-name {
+      font-family: var(--serif); font-size: 15px; font-weight: 700; color: var(--navy);
+      line-height: 1.2; margin-bottom: 2px;
+    }
+    .rec-model-desc { font-size: 12px; color: var(--muted); margin-bottom: 8px; line-height: 1.4; }
+    .rec-specs { font-size: 11px; color: var(--muted); line-height: 1.7; margin-bottom: 10px; }
+    .rec-notes { font-size: 12px; font-weight: 600; color: var(--body);
+      padding: 6px 0; border-top: 1px solid var(--border); margin-bottom: 12px; }
+    .rec-price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+    .rec-price {
+      font-family: var(--serif); font-size: 28px; font-weight: 700; color: var(--navy); line-height: 1;
+    }
+    .rec-price-label { font-size: 10px; color: var(--muted); }
+    .rec-change-btn {
+      margin-top: auto; background: none; border: 1px solid var(--border);
+      font-family: var(--sans); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+      padding: 9px 14px; cursor: pointer; transition: all 0.15s; width: 100%;
+    }
+    .rec-change-btn:hover { border-color: var(--navy); color: var(--navy); }
+
+    /* ════════════════════════════════════════
+       PAGE 4 — CONFIGURATION
+    ════════════════════════════════════════ */
+    #page-config { background: var(--tan); }
+    .config-body { flex: 1; overflow-y: auto; padding: 16px; }
+    .config-total-bar {
+      background: var(--navy); padding: 14px 20px;
+      display: flex; align-items: baseline; gap: 10px; flex-shrink: 0;
+    }
+    .config-total-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+    }
+    .config-total-price {
+      font-family: var(--serif); font-size: 28px; font-weight: 700; color: white; line-height: 1;
+    }
+    .config-total-note { font-size: 10px; color: rgba(255,255,255,0.35); margin-left: auto; }
+
+    .config-section { background: var(--white); border: 1px solid var(--border); margin-bottom: 12px; }
+    .config-section-header {
+      background: var(--tan); border-bottom: 1px solid var(--border);
+      padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .config-section-title {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--navy);
+    }
+    .config-section-sub { font-size: 11px; color: var(--muted); }
+    .config-form { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .cf-row { display: flex; gap: 10px; }
+    .cf-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .cf-group label {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+    }
+    .cf-group select, .cf-group input {
+      font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--navy);
+      background: var(--tan); border: 1px solid var(--border);
+      padding: 9px 10px; width: 100%; outline: none; border-radius: 0;
+      appearance: none; -webkit-appearance: none; min-height: 40px;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237A786E' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
+    }
+    .cf-group select:focus, .cf-group input:focus { border-color: var(--navy); background-color: white; }
+    .cf-group select:disabled { opacity: 0.4; cursor: default; }
+    .cf-group input[type=text], .cf-group input[type=number] {
+      background-image: none; padding-right: 10px;
+    }
+    .cf-group input::placeholder { color: var(--border); font-weight: 400; }
+
+    .cf-toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 0; border-top: 1px solid var(--border);
+    }
+    .cf-toggle-label { font-size: 13px; font-weight: 600; color: var(--body); }
+    .cf-toggle-detail { font-size: 11px; color: var(--muted); }
+    .cf-switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+    .cf-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .cf-switch-track {
+      position: absolute; inset: 0; background: var(--border);
+      border-radius: 11px; cursor: pointer; transition: background 0.2s;
+    }
+    .cf-switch-track::after {
+      content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%;
+      background: white; top: 3px; left: 3px; transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+    }
+    .cf-switch input:checked + .cf-switch-track { background: var(--navy); }
+    .cf-switch input:checked + .cf-switch-track::after { transform: translateX(18px); }
+    .cf-sub { margin-top: 6px; }
+    .cf-sub.hidden { display: none; }
+
+    .config-add-door-btn {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      background: none; border: 1px dashed var(--border); color: var(--muted);
+      font-family: var(--sans); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 10px; width: 100%; cursor: pointer; transition: all 0.15s; margin-bottom: 12px;
+    }
+    .config-add-door-btn:hover { border-color: var(--navy); color: var(--navy); }
+    .config-add-door-btn.hidden { display: none; }
+    .config-remove-door-btn {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 15px; padding: 0 0 0 8px; opacity: 0.6;
+    }
+    .config-remove-door-btn:hover { opacity: 1; color: var(--red); }
+
+    @media (max-width: 700px) {
+      .recs-body { grid-template-columns: 1fr; }
+      .home-card { padding: 36px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Loading…</div>
+</div>
+
+<!-- ════════ PAGE 1: HOME ════════ -->
+<div class="page active" id="page-home">
+  <div class="home-card">
+    <img class="home-logo" src="Northviewlogo2000wWhiteBackground.png" alt="Northview Doors & Systems"
+         onerror="this.style.display='none'; document.querySelector('.home-logo-fallback').style.display='block'">
+    <div class="home-logo-fallback">NORTHVIEW</div>
+    <div class="home-eyebrow">New Door Installation</div>
+    <h1 class="home-title">ShowRoom</h1>
+    <div id="home-auth-area">
+      <button class="home-signin-btn" onclick="signIn()">Sign in with Microsoft →</button>
+    </div>
+    <div id="home-job-area" style="display:none">
+      <label class="home-field-label">Select a Job</label>
+      <select class="home-select" id="job-select" onchange="onJobSelect()">
+        <option value="">— Select job ID —</option>
+      </select>
+      <button class="home-open-btn" id="open-btn" onclick="openJob()" disabled>Open Job →</button>
+      <div class="home-user-row">
+        <span id="home-user-name"></span>
+        <button class="home-signout" onclick="signOut()">Sign out</button>
+      </div>
+    </div>
+    <div id="home-error" class="home-error" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ════════ PAGE 2: ASSESSMENT ════════ -->
+<div class="page" id="page-assessment">
+  <div class="nav-bar">
+    <img class="nav-bar-logo" src="Northviewlogo2000wWhiteBackground.png" alt="Northview"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <span class="nav-bar-logo-text" style="display:none">NORTHVIEW</span>
+    <div class="nav-divider"></div>
+    <div>
+      <div class="nav-job-label">Home Assessment</div>
+      <div class="nav-job-id" id="assess-job-id"></div>
+    </div>
+    <div class="nav-spacer"></div>
+    <button class="nav-btn" onclick="showPage('home')">← Jobs</button>
+    <button class="nav-btn primary" onclick="showPage('recs')">Recommendations →</button>
+  </div>
+  <iframe id="pdf-frame" src="" title="Home Design Brief"></iframe>
+</div>
+
+<!-- ════════ PAGE 3: RECOMMENDATIONS ════════ -->
+<div class="page" id="page-recs">
+  <div class="nav-bar">
+    <img class="nav-bar-logo" src="Northviewlogo2000wWhiteBackground.png" alt="Northview"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <span class="nav-bar-logo-text" style="display:none">NORTHVIEW</span>
+    <div class="nav-divider"></div>
+    <div>
+      <div class="nav-job-label" id="recs-customer"></div>
+      <div class="nav-job-id" id="recs-address"></div>
+    </div>
+    <div class="nav-spacer"></div>
+    <button class="nav-btn" onclick="showPage('assessment')">← Assessment</button>
+  </div>
+  <div class="recs-body" id="recs-body"></div>
+</div>
+
+<!-- ════════ PAGE 4: CONFIGURATION ════════ -->
+<div class="page" id="page-config">
+  <div class="nav-bar">
+    <img class="nav-bar-logo" src="Northviewlogo2000wWhiteBackground.png" alt="Northview"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+    <span class="nav-bar-logo-text" style="display:none">NORTHVIEW</span>
+    <div class="nav-divider"></div>
+    <div>
+      <div class="nav-job-label">Adjusting Option</div>
+      <div class="nav-job-id" id="config-tier-label"></div>
+    </div>
+    <div class="nav-spacer"></div>
+    <button class="nav-btn primary" onclick="saveConfig()">Save &amp; Return →</button>
+  </div>
+  <div class="config-total-bar">
+    <span class="config-total-label">Installed Price</span>
+    <span class="config-total-price" id="config-total-price">—</span>
+    <span class="config-total-note">Updates as you configure</span>
+  </div>
+  <div class="config-body" id="config-body"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  CONFIGURATION  — paste your Azure Client ID below
+// ═══════════════════════════════════════════════════════════
+const CLIENT_ID = '1ad6edd0-985a-4202-81d2-a24d737936f9';
+const REDIRECT_URI = 'https://mcash454.github.io/northview-showroom/';
+const BASE_SEGMENTS = ['Documents','For-Profit Ventures','Northview Doors& Systems','Reference','Northview-Showroom'];
+
+// ═══ MSAL ══════════════════════════════════════════════════
+const msalInstance = new msal.PublicClientApplication({
+  auth: { clientId: CLIENT_ID, authority: 'https://login.microsoftonline.com/consumers', redirectUri: REDIRECT_URI },
+  cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: true }
+});
+const SCOPES = ['Files.Read'];
+
+// ═══ STATE ═════════════════════════════════════════════════
+let S = {
+  pricing: null,
+  config: null,       // loaded quote_config.json
+  editingIdx: null,   // which option (0/1/2) is being configured
+  renderUrls: {}      // { good, better, best } → download URLs
+};
+
+// ═══ AUTH ══════════════════════════════════════════════════
+async function getToken() {
+  const acct = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
+  if (!acct) throw new Error('Not signed in');
+  try {
+    return (await msalInstance.acquireTokenSilent({ scopes: SCOPES, account: acct })).accessToken;
+  } catch(e) {
+    if (e instanceof msal.InteractionRequiredAuthError) {
+      await msalInstance.acquireTokenRedirect({ scopes: SCOPES }); }
+    throw e;
+  }
+}
+
+async function signIn() { await msalInstance.loginRedirect({ scopes: SCOPES }); }
+
+async function signOut() {
+  await msalInstance.logoutRedirect({ postLogoutRedirectUri: REDIRECT_URI });
+}
+
+// ═══ GRAPH API ═════════════════════════════════════════════
+function drivePath(...segs) {
+  return '/me/drive/root:/' + [...BASE_SEGMENTS, ...segs].map(encodeURIComponent).join('/');
+}
+
+async function graphFetch(path, raw) {
+  const token = await getToken();
+  const r = await fetch('https://graph.microsoft.com/v1.0' + path, { headers: { Authorization: `Bearer ${token}` } });
+  if (!r.ok) { if (r.status === 404) return null; throw new Error('Graph ' + r.status); }
+  return raw ? r : r.json();
+}
+
+async function getJson(path) {
+  const r = await graphFetch(path + ':/content', true);
+  return r ? r.json() : null;
+}
+
+async function getDownloadUrl(path) {
+  const d = await graphFetch(path);
+  return d ? d['@microsoft.graph.downloadUrl'] : null;
+}
+
+// ═══ INIT ══════════════════════════════════════════════════
+(async () => {
+  try {
+    const resp = await msalInstance.handleRedirectPromise();
+    if (resp) msalInstance.setActiveAccount(resp.account);
+    const accts = msalInstance.getAllAccounts();
+    if (accts.length > 0) {
+      await startApp(accts[0]);
+    } else {
+      showPage('home');
+    }
+  } catch(e) {
+    showPage('home');
+    showError(e.message);
+  }
+})();
+
+async function startApp(account) {
+  showLoading('Loading…');
+  showPage('home');
+  try {
+    S.pricing = await getJson(drivePath('pricing.json'));
+    if (!S.pricing) throw new Error('pricing.json not found. Check SETUP.md for OneDrive folder structure.');
+
+    const data = await graphFetch(drivePath() + ':/children?$select=name,folder&$orderby=name%20desc');
+    const jobs = (data?.value || []).filter(i => i.folder && /^NV-/i.test(i.name)).map(i => i.name);
+
+    const sel = document.getElementById('job-select');
+    jobs.forEach(j => { const o = document.createElement('option'); o.value = o.text = j; sel.appendChild(o); });
+    document.getElementById('home-user-name').textContent = account.name || account.username;
+    document.getElementById('home-auth-area').style.display = 'none';
+    document.getElementById('home-job-area').style.display = 'block';
+  } catch(e) {
+    showError(e.message);
+  }
+  hideLoading();
+}
+
+// ═══ HOME PAGE ═════════════════════════════════════════════
+function onJobSelect() {
+  document.getElementById('open-btn').disabled = !document.getElementById('job-select').value;
+}
+
+async function openJob() {
+  const jobId = document.getElementById('job-select').value;
+  if (!jobId) return;
+  showLoading('Loading job…');
+  try {
+    S.config = await getJson(drivePath(jobId, 'quote_config.json'));
+    if (!S.config) {
+      S.config = { jobId, customer: jobId, address: '', date: new Date().toLocaleDateString(), options: defaultOptions() };
+    }
+    // Load PDF
+    const pdfUrl = await getDownloadUrl(drivePath(jobId, 'HomeDesignBrief.pdf'));
+    document.getElementById('pdf-frame').src = pdfUrl || '';
+    document.getElementById('assess-job-id').textContent = jobId;
+    // Pre-load render URLs
+    S.renderUrls = {};
+    for (const tier of ['good','better','best']) {
+      S.renderUrls[tier] = await getDownloadUrl(drivePath(jobId, `render_${tier}.jpg`));
+    }
+    hideLoading();
+    showPage('assessment');
+  } catch(e) {
+    hideLoading();
+    showError(e.message);
+  }
+}
+
+function defaultOptions() {
+  return ['GOOD','BETTER','BEST'].map(tier => ({
+    tier, doors:[emptyDoor()], nonStandardDesc:'', nonStandardAmt:0, notes:''
+  }));
+}
+function emptyDoor() {
+  return { manufacturer:'', model:'', size:'', woodtone:false, windows:false, windowType:'', opener:false, openerModel:'' };
+}
+
+// ═══ RECOMMENDATIONS PAGE ══════════════════════════════════
+function renderRecs() {
+  document.getElementById('recs-customer').textContent = S.config.customer || '';
+  document.getElementById('recs-address').textContent = S.config.address || '';
+  const body = document.getElementById('recs-body');
+  body.innerHTML = '';
+  S.config.options.forEach((opt, idx) => {
+    body.appendChild(buildRecCard(opt, idx));
+  });
+}
+
+function buildRecCard(opt, idx) {
+  const total = calcOptionTotal(opt);
+  const tier = opt.tier;
+  const renderUrl = S.renderUrls[tier.toLowerCase()];
+
+  // Model summary from first door
+  const d0 = opt.doors[0];
+  const doorInfo = S.pricing?.doors.find(d => d.manufacturer===d0.manufacturer && d.model===d0.model && d.size===d0.size);
+  const modelLine = d0.manufacturer ? `${d0.manufacturer} ${d0.model}` : '—';
+  const descLine = doorInfo ? doorInfo.description : '';
+
+  // Specs summary
+  const specs = [];
+  const sizes = opt.doors.map(d => d.size).filter(Boolean);
+  if (sizes.length) specs.push(sizes.join(' + '));
+  const hasWin = opt.doors.some(d => d.windows && d.windowType);
+  if (hasWin) {
+    const wt = opt.doors[0].windowType;
+    const winObj = S.pricing?.windows.find(w => w.manufacturer===d0.manufacturer && w.type===wt);
+    if (winObj) specs.push(winObj.description + ' windows');
+  }
+  const hasWood = opt.doors.some(d => d.woodtone);
+  if (hasWood) specs.push('Woodtone finish');
+  const hasOpener = opt.doors.some(d => d.opener && d.openerModel);
+  if (hasOpener) { const op = S.pricing?.openers.find(o => o.model===opt.doors[0].openerModel); if (op) specs.push('LiftMaster ' + op.model); }
+
+  const card = document.createElement('div');
+  card.className = 'rec-card';
+  card.innerHTML = `
+    <div class="rec-render-wrap">
+      ${renderUrl
+        ? `<img class="rec-render-img" src="${renderUrl}" alt="${tier} option render">`
+        : `<div class="rec-render-placeholder"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D8D4CA" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Render Pending</span></div>`
+      }
+    </div>
+    <div class="rec-card-body">
+      <div class="rec-tier-label">${tier}</div>
+      <div class="rec-model-name">${modelLine}${opt.doors.length > 1 ? ` <span style="font-size:11px;font-weight:400;font-style:italic;color:var(--muted)">+ ${opt.doors[1].manufacturer} ${opt.doors[1].model}</span>` : ''}</div>
+      <div class="rec-model-desc">${descLine}</div>
+      ${specs.length ? `<div class="rec-specs">${specs.join(' &nbsp;·&nbsp; ')}</div>` : ''}
+      ${opt.notes ? `<div class="rec-notes">${opt.notes}</div>` : ''}
+      <div class="rec-price-row">
+        <div class="rec-price">${total !== null ? fmt(total) : '—'}</div>
+        <div class="rec-price-label">installed</div>
+      </div>
+      <button class="rec-change-btn" onclick="openConfig(${idx})">Change Build / Configuration</button>
+    </div>`;
+  return card;
+}
+
+// ═══ CONFIG PAGE ═══════════════════════════════════════════
+function openConfig(idx) {
+  S.editingIdx = idx;
+  const opt = S.config.options[idx];
+  document.getElementById('config-tier-label').textContent = opt.tier;
+  renderConfigBody();
+  showPage('config');
+}
+
+function renderConfigBody() {
+  const opt = JSON.parse(JSON.stringify(S.config.options[S.editingIdx]));
+  const body = document.getElementById('config-body');
+  body.innerHTML = '';
+  opt.doors.forEach((door, di) => body.appendChild(buildDoorConfigSection(di)));
+  // Add door button
+  const addBtn = document.createElement('button');
+  addBtn.className = 'config-add-door-btn' + (opt.doors.length >= 2 ? ' hidden' : '');
+  addBtn.innerHTML = '+ Add Second Door';
+  addBtn.onclick = () => { S.config.options[S.editingIdx].doors.push(emptyDoor()); renderConfigBody(); };
+  body.appendChild(addBtn);
+  // Non-standard
+  body.appendChild(buildNonStdSection());
+  updateConfigTotal();
+}
+
+function buildDoorConfigSection(di) {
+  const opt = S.config.options[S.editingIdx];
+  const door = opt.doors[di];
+  const P = S.pricing;
+
+  const mfrOpts = `<option value="">— Select —</option>
+    <option value="Haas"${door.manufacturer==='Haas'?' selected':''}>Haas</option>
+    <option value="CHI"${door.manufacturer==='CHI'?' selected':''}>CHI</option>`;
+
+  let modelOpts = '<option value="">— Model —</option>';
+  if (door.manufacturer) {
+    const seen = new Set();
+    P.doors.filter(d => d.manufacturer===door.manufacturer && !seen.has(d.model) && seen.add(d.model))
+      .forEach(d => { modelOpts += `<option value="${d.model}"${door.model===d.model?' selected':''}>${d.model} — ${d.description}</option>`; });
+  }
+
+  let sizeOpts = '<option value="">— Size —</option>';
+  if (door.manufacturer && door.model) {
+    P.doors.filter(d => d.manufacturer===door.manufacturer && d.model===door.model)
+      .forEach(d => { sizeOpts += `<option value="${d.size}"${door.size===d.size?' selected':''}>${d.size}</option>`; });
+  }
+
+  const dd = P.doors.find(d => d.manufacturer===door.manufacturer && d.model===door.model && d.size===door.size);
+  const isOverlay = dd && dd.woodtonePremium === 0;
+  const wins = (door.manufacturer && door.model)
+    ? P.windows.filter(w => w.manufacturer===door.manufacturer && (w.applicableModels.length===0 || w.applicableModels.includes(door.model)))
+    : [];
+  let winTypeOpts = '<option value="">— Type —</option>';
+  wins.forEach(w => { winTypeOpts += `<option value="${w.type}"${door.windowType===w.type?' selected':''}>${w.type}: ${w.description}</option>`; });
+
+  let openerOpts = '<option value="">— Model —</option>';
+  P.openers.forEach(op => { openerOpts += `<option value="${op.model}"${door.openerModel===op.model?' selected':''}>${op.model} — ${op.description} (${fmt(op.bundlePrice)} w/ install)</option>`; });
+
+  const sec = document.createElement('div');
+  sec.className = 'config-section';
+  sec.innerHTML = `
+    <div class="config-section-header">
+      <span class="config-section-title">Door ${di+1}</span>
+      ${opt.doors.length > 1 ? `<button class="config-remove-door-btn" onclick="removeDoor(${di})">×</button>` : ''}
+    </div>
+    <div class="config-form">
+      <div class="cf-row">
+        <div class="cf-group" style="max-width:100px"><label>Manufacturer</label>
+          <select onchange="cfChange(${di},'manufacturer',this.value)">${mfrOpts}</select></div>
+        <div class="cf-group"><label>Model</label>
+          <select onchange="cfChange(${di},'model',this.value)"${!door.manufacturer?' disabled':''}>${modelOpts}</select></div>
+        <div class="cf-group" style="max-width:80px"><label>Size</label>
+          <select onchange="cfChange(${di},'size',this.value)"${!door.model?' disabled':''}>${sizeOpts}</select></div>
+      </div>
+      ${!isOverlay ? `
+      <div class="cf-toggle-row">
+        <span class="cf-toggle-label">Woodtone Finish</span>
+        <label class="cf-switch">
+          <input type="checkbox" ${door.woodtone?'checked':''} onchange="cfToggle(${di},'woodtone',this.checked)">
+          <span class="cf-switch-track"></span>
+        </label>
+      </div>` : `<div style="font-size:11px;color:var(--muted);padding:6px 0;border-top:1px solid var(--border)">Woodtone finish included in model price</div>`}
+      <div class="cf-toggle-row">
+        <span class="cf-toggle-label">Windows</span>
+        <label class="cf-switch">
+          <input type="checkbox" ${door.windows?'checked':''} onchange="cfToggle(${di},'windows',this.checked)">
+          <span class="cf-switch-track"></span>
+        </label>
+      </div>
+      <div class="cf-sub${door.windows?'':' hidden'}" id="win-sub-${di}">
+        <div class="cf-group"><label>Window Type</label>
+          <select onchange="cfChange(${di},'windowType',this.value)">${winTypeOpts}</select></div>
+      </div>
+      <div class="cf-toggle-row">
+        <span class="cf-toggle-label">LiftMaster Opener</span>
+        <label class="cf-switch">
+          <input type="checkbox" ${door.opener?'checked':''} onchange="cfToggle(${di},'opener',this.checked)">
+          <span class="cf-switch-track"></span>
+        </label>
+      </div>
+      <div class="cf-sub${door.opener?'':' hidden'}" id="opener-sub-${di}">
+        <div class="cf-group"><label>Opener Model</label>
+          <select onchange="cfChange(${di},'openerModel',this.value)">${openerOpts}</select></div>
+      </div>
+    </div>`;
+  return sec;
+}
+
+function buildNonStdSection() {
+  const opt = S.config.options[S.editingIdx];
+  const sec = document.createElement('div');
+  sec.className = 'config-section';
+  sec.innerHTML = `
+    <div class="config-section-header">
+      <span class="config-section-title">Non-Standard Work</span>
+      <span class="config-section-sub">Optional — adds to installed price</span>
+    </div>
+    <div class="config-form">
+      <div class="cf-row">
+        <div class="cf-group" style="flex:3">
+          <label>Description</label>
+          <input type="text" placeholder="e.g. Header repair, masonry surcharge…"
+            value="${opt.nonStandardDesc || ''}"
+            oninput="S.config.options[S.editingIdx].nonStandardDesc=this.value; updateConfigTotal()">
+        </div>
+        <div class="cf-group" style="max-width:120px">
+          <label>Amount ($)</label>
+          <input type="number" placeholder="0" min="0" step="1"
+            value="${opt.nonStandardAmt || ''}"
+            oninput="S.config.options[S.editingIdx].nonStandardAmt=parseFloat(this.value)||0; updateConfigTotal()">
+        </div>
+      </div>
+    </div>`;
+  return sec;
+}
+
+function cfChange(di, field, val) {
+  S.config.options[S.editingIdx].doors[di][field] = val;
+  if (field === 'manufacturer') { S.config.options[S.editingIdx].doors[di].model=''; S.config.options[S.editingIdx].doors[di].size=''; S.config.options[S.editingIdx].doors[di].windows=false; S.config.options[S.editingIdx].doors[di].windowType=''; }
+  if (field === 'model') { S.config.options[S.editingIdx].doors[di].size=''; S.config.options[S.editingIdx].doors[di].windows=false; S.config.options[S.editingIdx].doors[di].windowType=''; }
+  renderConfigBody();
+}
+
+function cfToggle(di, field, val) {
+  S.config.options[S.editingIdx].doors[di][field] = val;
+  if (field==='windows' && !val) S.config.options[S.editingIdx].doors[di].windowType='';
+  if (field==='opener' && !val) S.config.options[S.editingIdx].doors[di].openerModel='';
+  const winSub = document.getElementById(`win-sub-${di}`);
+  const opSub = document.getElementById(`opener-sub-${di}`);
+  if (winSub) winSub.classList.toggle('hidden', field==='windows' && !val);
+  if (opSub) opSub.classList.toggle('hidden', field==='opener' && !val);
+  updateConfigTotal();
+}
+
+function removeDoor(di) {
+  S.config.options[S.editingIdx].doors.splice(di,1);
+  renderConfigBody();
+}
+
+function saveConfig() {
+  showPage('recs');
+  renderRecs();
+}
+
+// ═══ PRICE CALC ════════════════════════════════════════════
+function calcDoorPreCC(door) {
+  if (!door.manufacturer || !door.model || !door.size) return null;
+  const P = S.pricing;
+  const dd = P.doors.find(d => d.manufacturer===door.manufacturer && d.model===door.model && d.size===door.size);
+  if (!dd) return null;
+  const A = P.assumptions;
+  const [w,h] = door.size.split('x').map(Number);
+  const cars = dd.carCount;
+  const doorCost = dd.doorCost;
+  const woodCost = (door.woodtone && dd.woodtonePremium > 0) ? dd.woodtonePremium * w * h : 0;
+  let winCost=0, insCost=0;
+  if (door.windows && door.windowType) {
+    const wn = P.windows.find(x => x.manufacturer===door.manufacturer && x.type===door.windowType);
+    if (wn) { winCost = wn.windowCost1Car*cars; insCost = wn.insertCost1Car*cars; }
+  }
+  const sealCost = A.weatherseal1Car * cars;
+  const matCost = doorCost + woodCost + winCost + insCost + sealCost;
+  const labor = cars===1 ? A.labor1Car : A.labor2Car;
+  const tax = matCost * A.taxRate;
+  let openerPrice = 0;
+  if (door.opener && door.openerModel) {
+    const op = P.openers.find(o => o.model===door.openerModel);
+    if (op) openerPrice = op.bundlePrice;
+  }
+  return matCost*(1+A.markup) + labor + tax + openerPrice;
+}
+
+function calcOptionTotal(opt) {
+  if (!S.pricing) return null;
+  const subs = opt.doors.map(calcDoorPreCC);
+  if (subs.some(r => r===null)) return null;
+  const sum = subs.reduce((a,b) => a+b, 0);
+  const nonStd = opt.nonStandardAmt || 0;
+  const beforeCC = sum + nonStd;
+  return beforeCC * (1 + S.pricing.assumptions.ccFee);
+}
+
+function updateConfigTotal() {
+  const opt = S.config.options[S.editingIdx];
+  const total = calcOptionTotal(opt);
+  document.getElementById('config-total-price').textContent = total !== null ? fmt(total) : '—';
+}
+
+// ═══ UI HELPERS ════════════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const map = { home:'page-home', assessment:'page-assessment', recs:'page-recs', config:'page-config' };
+  document.getElementById(map[name]).classList.add('active');
+  if (name==='recs' && S.config) renderRecs();
+}
+
+function showLoading(msg) {
+  document.getElementById('loading-text').textContent = msg || 'Loading…';
+  document.getElementById('loading-overlay').classList.add('active');
+}
+function hideLoading() { document.getElementById('loading-overlay').classList.remove('active'); }
+
+function showError(msg) {
+  const el = document.getElementById('home-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function fmt(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+</script>
+</body>
+</html>
