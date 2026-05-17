@@ -504,7 +504,7 @@ async function openJob() {
     // Pre-load render URLs
     S.renderUrls = {};
     for (const tier of ['good','better','best']) {
-      S.renderUrls[tier] = await getDownloadUrl(drivePath(jobId, `render_${tier}.jpg`));
+      S.renderUrls[tier] = await getDownloadUrl(drivePath(jobId, `render_${tier}.png`));
     }
     hideLoading();
     showPage('assessment');
