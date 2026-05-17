@@ -367,10 +367,18 @@ const REDIRECT_URI = 'https://northviewdoorsystems.github.io/showroom/';
 const BASE_SEGMENTS = ['Documents','For-Profit Ventures','Northview Doors& Systems','Reference','Northview-Showroom'];
 
 // ═══ MSAL ══════════════════════════════════════════════════
-const msalInstance = new msal.PublicClientApplication({
-  auth: { clientId: CLIENT_ID, authority: 'https://login.microsoftonline.com/common', redirectUri: REDIRECT_URI },
-  cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: true }
-});
+let msalInstance;
+try {
+  msalInstance = new msal.PublicClientApplication({
+    auth: { clientId: CLIENT_ID, authority: 'https://login.microsoftonline.com/common', redirectUri: REDIRECT_URI },
+    cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: true }
+  });
+} catch(e) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('home-error');
+    if (el) { el.textContent = 'Init error: ' + e.message; el.style.display = 'block'; }
+  });
+}
 const SCOPES = ['Files.Read'];
 
 // ═══ STATE ═════════════════════════════════════════════════
@@ -394,7 +402,16 @@ async function getToken() {
   }
 }
 
-async function signIn() { await msalInstance.loginRedirect({ scopes: SCOPES }); }
+async function signIn() {
+  const errEl = document.getElementById('home-error');
+  try {
+    if (!msalInstance) throw new Error('MSAL did not initialize — check browser console.');
+    await msalInstance.loginRedirect({ scopes: SCOPES });
+  } catch(e) {
+    errEl.textContent = 'Sign-in error: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
 
 async function signOut() {
   await msalInstance.logoutRedirect({ postLogoutRedirectUri: REDIRECT_URI });
