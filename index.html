@@ -278,7 +278,7 @@
 <!-- ════════ PAGE 1: HOME ════════ -->
 <div class="page active" id="page-home">
   <div class="home-card">
-    <img class="home-logo" src="Northviewlogo2000wWhiteBackground.png" alt="Northview Doors & Systems"
+    <img class="home-logo" src="northview-logo_2000w.png" alt="Northview Doors & Systems"
          onerror="this.style.display='none'; document.querySelector('.home-logo-fallback').style.display='block'">
     <div class="home-logo-fallback">NORTHVIEW</div>
     <div class="home-eyebrow">New Door Installation</div>
@@ -304,7 +304,7 @@
 <!-- ════════ PAGE 2: ASSESSMENT ════════ -->
 <div class="page" id="page-assessment">
   <div class="nav-bar">
-    <img class="nav-bar-logo" src="Northviewlogo2000wWhiteBackground.png" alt="Northview"
+    <img class="nav-bar-logo" src="northview-logo_2000w.png" alt="Northview"
          onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
     <span class="nav-bar-logo-text" style="display:none">NORTHVIEW</span>
     <div class="nav-divider"></div>
@@ -322,7 +322,7 @@
 <!-- ════════ PAGE 3: RECOMMENDATIONS ════════ -->
 <div class="page" id="page-recs">
   <div class="nav-bar">
-    <img class="nav-bar-logo" src="Northviewlogo2000wWhiteBackground.png" alt="Northview"
+    <img class="nav-bar-logo" src="northview-logo_2000w.png" alt="Northview"
          onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
     <span class="nav-bar-logo-text" style="display:none">NORTHVIEW</span>
     <div class="nav-divider"></div>
@@ -339,7 +339,7 @@
 <!-- ════════ PAGE 4: CONFIGURATION ════════ -->
 <div class="page" id="page-config">
   <div class="nav-bar">
-    <img class="nav-bar-logo" src="Northviewlogo2000wWhiteBackground.png" alt="Northview"
+    <img class="nav-bar-logo" src="northview-logo_2000w.png" alt="Northview"
          onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
     <span class="nav-bar-logo-text" style="display:none">NORTHVIEW</span>
     <div class="nav-divider"></div>
@@ -491,9 +491,15 @@ async function openJob() {
     if (!S.config) {
       S.config = { jobId, customer: jobId, address: '', date: new Date().toLocaleDateString(), options: defaultOptions() };
     }
-    // Load PDF
-    const pdfUrl = await getDownloadUrl(drivePath(jobId, 'HomeDesignBrief.pdf'));
-    document.getElementById('pdf-frame').src = pdfUrl || '';
+    // Load PDF as blob to force inline display (avoid Content-Disposition: attachment)
+    const pdfDownloadUrl = await getDownloadUrl(drivePath(jobId, 'HomeDesignBrief.pdf'));
+    if (pdfDownloadUrl) {
+      const pdfResp = await fetch(pdfDownloadUrl);
+      const pdfBlob = await pdfResp.blob();
+      document.getElementById('pdf-frame').src = URL.createObjectURL(pdfBlob);
+    } else {
+      document.getElementById('pdf-frame').src = '';
+    }
     document.getElementById('assess-job-id').textContent = jobId;
     // Pre-load render URLs
     S.renderUrls = {};
