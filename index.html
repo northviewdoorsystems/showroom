@@ -63,68 +63,69 @@
        PAGE 1 — HOME
     ════════════════════════════════════════ */
     /* ── HOME PAGE ── */
-    #page-home { flex-direction: column; }
-    .home-top {
+    #page-home {
       background: var(--white);
-      flex: 1;
-      display: flex; align-items: center; justify-content: center;
-      padding: 48px 32px;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .home-inner {
+      border: 3px solid var(--navy);
+      padding: 48px 40px 40px;
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
     }
     .home-logo {
-      max-width: 400px; width: 80%; height: auto; display: block;
+      width: 100%; height: auto; display: block; margin-bottom: 32px;
     }
     .home-logo-fallback {
-      display: none; font-family: var(--serif); font-weight: 700; font-size: 28px;
-      color: var(--navy); letter-spacing: 0.02em;
+      display: none; font-family: var(--serif); font-weight: 700; font-size: 24px;
+      color: var(--navy); margin-bottom: 32px;
     }
-    .home-bottom {
-      background: var(--navy);
-      flex: 0 0 auto;
-      padding: 36px 32px 40px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .home-controls { width: 100%; max-width: 400px; }
     .home-field-label {
       font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(255,255,255,0.4); margin-bottom: 8px; display: block;
+      color: var(--muted); margin-bottom: 8px; display: block; width: 100%;
     }
     .home-select {
       width: 100%; font-family: var(--sans); font-size: 14px; font-weight: 600;
-      padding: 14px 16px; border-radius: 0; appearance: none; -webkit-appearance: none;
+      padding: 13px 16px; border-radius: 0; appearance: none; -webkit-appearance: none;
       cursor: pointer; outline: none; display: block; color: var(--navy);
-      border: none; background: var(--white);
+      border: 1px solid var(--border); background: var(--tan);
       background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23152848' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
       margin-bottom: 10px;
     }
     .home-open-btn {
-      width: 100%; background: var(--red); color: white; border: none;
+      width: 100%; background: var(--navy); color: white; border: none;
       font-family: var(--sans); font-size: 12px; font-weight: 700;
-      letter-spacing: 0.14em; text-transform: uppercase; padding: 16px;
+      letter-spacing: 0.14em; text-transform: uppercase; padding: 15px;
       cursor: pointer; transition: background 0.15s;
     }
-    .home-open-btn:hover { background: #a32424; }
-    .home-open-btn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.25); cursor: default; }
+    .home-open-btn:hover { background: #1e3a6a; }
+    .home-open-btn:disabled { background: var(--border); color: var(--white); cursor: default; }
     .home-signin-btn {
-      width: 100%; background: var(--red); color: white; border: none;
-      font-family: var(--sans); font-size: 13px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 16px; transition: background 0.15s; cursor: pointer;
+      width: 100%; background: var(--navy); color: white; border: none;
+      font-family: var(--sans); font-size: 12px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 15px; transition: background 0.15s; cursor: pointer;
       appearance: none; -webkit-appearance: none;
     }
-    .home-signin-btn:hover { background: #a32424; }
+    .home-signin-btn:hover { background: #1e3a6a; }
     .home-user-row {
-      margin-top: 16px; font-size: 11px; color: rgba(255,255,255,0.35);
-      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 16px; font-size: 11px; color: var(--muted);
+      display: flex; align-items: center; justify-content: space-between; width: 100%;
     }
     .home-signout {
       background: none; border: none; font-family: var(--sans);
-      font-size: 11px; color: rgba(255,255,255,0.35); cursor: pointer; text-decoration: underline;
+      font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline;
     }
     .home-error {
-      margin-top: 14px; font-size: 12px; color: #f0c8c8;
-      background: rgba(139,30,30,0.3); border: 1px solid rgba(139,30,30,0.5);
-      padding: 10px 14px;
+      margin-top: 12px; font-size: 12px; color: var(--red);
+      background: #fdf0f0; border: 1px solid #f0c8c8; padding: 10px 14px; width: 100%;
     }
 
     /* ════════════════════════════════════════
@@ -286,30 +287,26 @@
 
 <!-- ════════ PAGE 1: HOME ════════ -->
 <div class="page active" id="page-home">
-  <div class="home-top">
+  <div class="home-inner">
     <img class="home-logo" src="Showroom-Logo.png" alt="Northview ShowRoom"
          onerror="this.style.display='none'; document.querySelector('.home-logo-fallback').style.display='block'">
     <div class="home-logo-fallback">NORTHVIEW SHOWROOM</div>
-  </div>
-  <div class="home-bottom">
-    <div class="home-controls">
-      <div id="home-auth-area">
-        <label class="home-field-label">Advisor Access</label>
-        <button class="home-signin-btn" onclick="signIn()">Sign in with Microsoft →</button>
-      </div>
-      <div id="home-job-area" style="display:none">
-        <label class="home-field-label">Select a Job</label>
-        <select class="home-select" id="job-select" onchange="onJobSelect()">
-          <option value="">— Select job ID —</option>
-        </select>
-        <button class="home-open-btn" id="open-btn" onclick="openJob()" disabled>Open Job →</button>
-        <div class="home-user-row">
-          <span id="home-user-name"></span>
-          <button class="home-signout" onclick="signOut()">Sign out</button>
-        </div>
-      </div>
-      <div id="home-error" class="home-error" style="display:none"></div>
+    <div id="home-auth-area" style="width:100%">
+      <label class="home-field-label">Advisor Access</label>
+      <button class="home-signin-btn" onclick="signIn()">Sign in with Microsoft →</button>
     </div>
+    <div id="home-job-area" style="display:none;width:100%">
+      <label class="home-field-label">Select a Job</label>
+      <select class="home-select" id="job-select" onchange="onJobSelect()">
+        <option value="">— Select job ID —</option>
+      </select>
+      <button class="home-open-btn" id="open-btn" onclick="openJob()" disabled>Open Job →</button>
+      <div class="home-user-row">
+        <span id="home-user-name"></span>
+        <button class="home-signout" onclick="signOut()">Sign out</button>
+      </div>
+    </div>
+    <div id="home-error" class="home-error" style="display:none"></div>
   </div>
 </div>
 
