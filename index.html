@@ -63,39 +63,27 @@
        PAGE 1 — HOME
     ════════════════════════════════════════ */
     /* ── HOME PAGE ── */
-    #page-home {
-      background: var(--navy);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-    }
-    .home-left {
-      display: flex; flex-direction: column; justify-content: center;
-      padding: 64px 56px; border-right: 1px solid rgba(255,255,255,0.08);
+    #page-home { flex-direction: column; }
+    .home-top {
+      background: var(--white);
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 48px 32px;
     }
     .home-logo {
-      max-width: 460px; height: auto; margin-bottom: 48px; display: block;
+      max-width: 400px; width: 80%; height: auto; display: block;
     }
     .home-logo-fallback {
       display: none; font-family: var(--serif); font-weight: 700; font-size: 28px;
-      color: white; letter-spacing: 0.02em; margin-bottom: 48px;
+      color: var(--navy); letter-spacing: 0.02em;
     }
-    .home-eyebrow {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase;
-      color: rgba(255,255,255,0.4); margin-bottom: 14px;
+    .home-bottom {
+      background: var(--navy);
+      flex: 0 0 auto;
+      padding: 36px 32px 40px;
+      display: flex; align-items: center; justify-content: center;
     }
-    .home-title {
-      font-family: var(--serif); font-size: clamp(48px, 6vw, 72px); font-weight: 700;
-      color: white; line-height: 1.0; margin-bottom: 8px; letter-spacing: -0.01em;
-    }
-    .home-title-sub {
-      font-family: var(--serif); font-size: clamp(18px, 2.2vw, 26px); font-weight: 400;
-      font-style: italic; color: rgba(255,255,255,0.45); margin-bottom: 0;
-    }
-    .home-right {
-      display: flex; flex-direction: column; justify-content: center;
-      padding: 64px 56px; background: rgba(0,0,0,0.15);
-    }
-    .home-right-inner { max-width: 380px; }
+    .home-controls { width: 100%; max-width: 400px; }
     .home-field-label {
       font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
       color: rgba(255,255,255,0.4); margin-bottom: 8px; display: block;
@@ -116,7 +104,7 @@
       cursor: pointer; transition: background 0.15s;
     }
     .home-open-btn:hover { background: #a32424; }
-    .home-open-btn:disabled { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.3); cursor: default; }
+    .home-open-btn:disabled { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.25); cursor: default; }
     .home-signin-btn {
       width: 100%; background: var(--red); color: white; border: none;
       font-family: var(--sans); font-size: 13px; font-weight: 700;
@@ -126,23 +114,17 @@
     }
     .home-signin-btn:hover { background: #a32424; }
     .home-user-row {
-      margin-top: 16px; font-size: 11px; color: rgba(255,255,255,0.4);
+      margin-top: 16px; font-size: 11px; color: rgba(255,255,255,0.35);
       display: flex; align-items: center; justify-content: space-between;
     }
     .home-signout {
       background: none; border: none; font-family: var(--sans);
-      font-size: 11px; color: rgba(255,255,255,0.4); cursor: pointer; text-decoration: underline;
+      font-size: 11px; color: rgba(255,255,255,0.35); cursor: pointer; text-decoration: underline;
     }
     .home-error {
       margin-top: 14px; font-size: 12px; color: #f0c8c8;
       background: rgba(139,30,30,0.3); border: 1px solid rgba(139,30,30,0.5);
       padding: 10px 14px;
-    }
-    @media (max-width: 700px) {
-      #page-home { grid-template-columns: 1fr; }
-      .home-left { padding: 48px 32px 32px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
-      .home-logo { max-width: 240px; margin-bottom: 32px; }
-      .home-right { padding: 32px; }
     }
 
     /* ════════════════════════════════════════
@@ -304,13 +286,13 @@
 
 <!-- ════════ PAGE 1: HOME ════════ -->
 <div class="page active" id="page-home">
-  <div class="home-left">
+  <div class="home-top">
     <img class="home-logo" src="Showroom-Logo.png" alt="Northview ShowRoom"
          onerror="this.style.display='none'; document.querySelector('.home-logo-fallback').style.display='block'">
-    <div class="home-logo-fallback">NORTHVIEW</div>
+    <div class="home-logo-fallback">NORTHVIEW SHOWROOM</div>
   </div>
-  <div class="home-right">
-    <div class="home-right-inner">
+  <div class="home-bottom">
+    <div class="home-controls">
       <div id="home-auth-area">
         <label class="home-field-label">Advisor Access</label>
         <button class="home-signin-btn" onclick="signIn()">Sign in with Microsoft →</button>
