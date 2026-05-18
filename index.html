@@ -301,7 +301,8 @@ let S = {
   editSnapshot: null,      // snapshot when config page opens
   editingIdx: null,
   renderUrls: {},
-  pdfBlobUrl: null
+  pdfBlobUrl: null,
+  modifiedOptions: new Set()
 };
 
 // ═══ AUTH ════════════════════════════════════════════════════
@@ -449,9 +450,9 @@ function checkWoodtone(mfr, model, color) {
   if (mfr === 'CHI') return (C.CHI?.[model]?.accentWoodtone||[]).includes(color);
   return false;
 }
-function allDoorsAreTwoCar(opt) {
+function anyDoorIsTwoCar(opt) {
   if (!opt.doors.length) return false;
-  return opt.doors.every(d => {
+  return opt.doors.some(d => {
     const dd = S.pricing?.doors.find(x => x.manufacturer===opt.manufacturer && x.model===opt.model && x.size===d.size);
     return dd?.carCount === 2;
   });
@@ -460,8 +461,8 @@ function getInsertList(opt) {
   const wt = getEffectiveWindowType(opt);
   const entry = S.pricing?.windows.find(w => w.manufacturer===opt.manufacturer && w.type===wt);
   if (!entry) return [];
-  const all2Car = allDoorsAreTwoCar(opt);
-  return [...entry.inserts.all, ...(all2Car ? entry.inserts['2carOnly'] : [])];
+  const has2Car = anyDoorIsTwoCar(opt);
+  return [...entry.inserts.all, ...(has2Car ? entry.inserts['2carOnly'] : [])];
 }
 function getColorGroups(mfr, model) {
   const C = S.pricing?.colors;
@@ -566,9 +567,10 @@ function buildRecCard(opt, idx) {
   card.innerHTML = `
     <div class="rec-render-wrap">
       ${renderUrl
-        ? `<img class="rec-render-img" src="${renderUrl}" alt="${opt.tier} render">`
+        ? `<img class="rec-render-img" src="${renderUrl}" alt="${opt.tier} render" style="${S.modifiedOptions.has(idx)?'filter:grayscale(0.7) opacity(0.5)':''}">`
         : `<div class="rec-render-ph"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#D8D4CA" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Render Pending</span></div>`
       }
+      ${S.modifiedOptions.has(idx) ? `<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:rgba(21,40,72,0.45)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span style="font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:white">Config Updated</span><span style="font-size:9px;color:rgba(255,255,255,0.7)">Render pending</span></div>` : ''}
     </div>
     <div class="rec-body">
       <div class="rec-tier">${opt.tier}</div>
@@ -604,6 +606,7 @@ function cancelConfig() {
 
 function restoreOriginal() {
   S.config.options[S.editingIdx] = deepCopy(S.originalConfig.options[S.editingIdx]);
+  S.modifiedOptions.delete(S.editingIdx);
   showPage('recs'); renderRecs();
 }
 
@@ -693,8 +696,8 @@ function renderConfigBody() {
       let insOpts = '<option value="">— Select Insert Style —</option>';
       inserts.forEach(i => { insOpts += `<option value="${i}"${o.insertStyle===i?' selected':''}>${i}</option>`; });
       form2.innerHTML += `<div class="cf-sub"><div class="cf-form" style="padding:8px 0 0 0">${rowHtml([fieldHtml('Insert Style',`<select onchange="cfSet('insertStyle',this.value)">${insOpts}</select>`)])}</div></div>`;
-      if (!allDoorsAreTwoCar(o)) {
-        form2.innerHTML += `<div class="cf-info-tag">Some insert styles require all doors to be 2-car (16-wide) — set door sizes first</div>`;
+      if (!anyDoorIsTwoCar(o)) {
+        form2.innerHTML += `<div class="cf-info-tag">Double-arch and 4-piece inserts available because at least one door is 2-car (16-wide)</div>`;
       }
     }
   }
@@ -842,6 +845,10 @@ function saveConfig() {
     return;
   }
   msg.style.display = 'none';
+  // Mark render as stale if config changed from original
+  if (JSON.stringify(S.config.options[S.editingIdx]) !== JSON.stringify(S.originalConfig.options[S.editingIdx])) {
+    S.modifiedOptions.add(S.editingIdx);
+  }
   showPage('recs'); renderRecs();
 }
 
