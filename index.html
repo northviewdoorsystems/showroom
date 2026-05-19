@@ -477,7 +477,7 @@ function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
 
 // ═══ PRODUCT DATA HELPERS ════════════════════════════════════
 function getChiWindowType(model) {
-  return {'2216':'Type 1a','4216':'Type 1b','5216':'Type 2','5916':'Type 2','2516':'Type 2','5602':'Type 3','5600':'Type 4'}[model] || '';
+  return {'2206':'Type 1a','2216':'Type 1a','4206':'Type 1b','4216':'Type 1b','5216':'Type 2','5916':'Type 2','2516':'Type 2','5602':'Type 3','5600':'Type 4'}[model] || '';
 }
 function getEffectiveWindowType(opt) {
   return opt.manufacturer === 'Haas' ? opt.windowType : getChiWindowType(opt.model);
