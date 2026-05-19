@@ -166,6 +166,17 @@
     .cf-add-door:hover { border-color:var(--navy); color:var(--navy); }
     .cf-validation { font-size:12px; color:var(--red); background:#fdf0f0;
       border:1px solid #f0c8c8; padding:10px 14px; display:none; }
+    /* Bottom sections (DASMA + Terms) */
+    .recs-bottom-img-wrap { background:var(--white); border:1px solid var(--border); overflow:hidden; }
+    .recs-bottom-img-wrap img { width:100%; height:auto; display:block; }
+    .recs-img-fallback { padding:20px 24px; }
+    .recs-fallback-title { font-size:9px; font-weight:700; letter-spacing:0.18em;
+      text-transform:uppercase; color:var(--navy); margin-bottom:8px; }
+    .recs-fallback-list { list-style:none; padding:0; margin:0; }
+    .recs-fallback-list li { font-size:11px; color:var(--muted); padding:2px 0 2px 10px;
+      position:relative; line-height:1.5; }
+    .recs-fallback-list li::before { content:'—'; position:absolute; left:0; color:var(--border); font-size:9px; }
+
     /* Rec card expandable sections */
     .rec-expand-btn {
       width:100%; background:none; border:1px solid var(--border);
@@ -572,6 +583,52 @@ function renderRecs() {
   const body = document.getElementById('recs-body');
   body.innerHTML = '';
   cfg.options.forEach((opt, idx) => body.appendChild(buildRecCard(opt, idx)));
+  // Bottom sections — render once after the three option cards
+  const existing = document.getElementById('recs-bottom');
+  if (existing) existing.remove();
+  const bottom = document.createElement('div');
+  bottom.id = 'recs-bottom';
+  bottom.style.cssText = 'grid-column:1/-1; display:flex; flex-direction:column; gap:10px; padding-top:4px;';
+  bottom.innerHTML = buildBottomSections();
+  body.appendChild(bottom);
+}
+
+function buildBottomSections() {
+  return `
+    <div class="recs-bottom-img-wrap">
+      <img src="section-footer.png" alt="DASMA Thermal Performance, Included in Every Price, and Quote Assumptions"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div class="recs-img-fallback" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+          <div style="grid-column:1/-1">
+            <div class="recs-fallback-title">DASMA Thermal Performance</div>
+            <p style="font-size:11px;color:var(--muted);line-height:1.6">Stated U-Factors come from the Door &amp; Access Systems Manufacturers Association (DASMA) Thermal Performance Verification Program. These ratings are based on testing the entire installed door under controlled conditions, reflecting real-world energy performance — not just a single section of the door.</p>
+          </div>
+          <div>
+            <div class="recs-fallback-title">Included in Every Quoted Price</div>
+            <ul class="recs-fallback-list">
+              <li>One-year labor warranty on all installation work</li>
+              <li>Full track replacement (standard radius)</li>
+              <li>New torsion spring hardware</li>
+              <li>New PVC weatherseal around door opening</li>
+            </ul>
+          </div>
+          <div>
+            <div class="recs-fallback-title">Quote Assumptions &amp; Limitations</div>
+            <ul class="recs-fallback-list">
+              <li>Electrical outlet within reach of opener — no electrical work included</li>
+              <li>Rough opening is square and within standard tolerance</li>
+              <li>Standard ceiling height — no extension kit required</li>
+              <li>Standard wood or steel jamb — no masonry surcharge</li>
+              <li>Level floor — no shimming or threshold work required</li>
+              <li>Quotes are valid for 21 days</li>
+            </ul>
+            <p style="font-size:10px;color:var(--muted);margin-top:8px;font-style:italic">If a site visit reveals any assumption above does not apply, final adjustments will occur on-site.</p>
+          </div>
+        </div>
+        <p style="font-size:10px;color:var(--muted);margin-top:10px"><em>Add section-footer.png (1980 × 720 px) to your GitHub showroom repo alongside index.html</em></p>
+      </div>
+    </div>`;
 }
 
 function buildRecCard(opt, idx) {
@@ -627,31 +684,6 @@ function buildRecCard(opt, idx) {
         ${specCardHtml(opt)}
       </div>
       <button class="rec-change-btn" onclick="openConfig(${idx})">Change Build / Configuration</button>
-      <div class="rec-section">
-        <div class="rec-section-title">DASMA Thermal Performance</div>
-        <p class="rec-section">Stated U-Factors come from the Door & Access Systems Manufacturers Association (DASMA) Thermal Performance Verification Program. These ratings are based on testing the entire installed door under controlled conditions, reflecting real-world energy performance — not just a single section of the door.</p>
-      </div>
-      <div class="rec-section">
-        <div class="rec-section-title">Included in Every Quoted Price</div>
-        <ul>
-          <li>One-year labor warranty on all installation work</li>
-          <li>Full track replacement (standard radius)</li>
-          <li>New torsion spring hardware</li>
-          <li>New PVC weatherseal around door opening</li>
-        </ul>
-      </div>
-      <div class="rec-section">
-        <div class="rec-section-title">Quote Assumptions &amp; Limitations</div>
-        <ul>
-          <li>Electrical outlet within reach of opener — no electrical work included</li>
-          <li>Rough opening is square and within standard tolerance</li>
-          <li>Standard ceiling height — no extension kit required</li>
-          <li>Standard wood or steel jamb attachment — no masonry surcharge</li>
-          <li>Level floor — no shimming or threshold work required</li>
-          <li>Quotes are valid for 21 days</li>
-        </ul>
-        <p style="font-size:10px;color:var(--muted);margin-top:6px;font-style:italic">If a site visit reveals any assumption above does not apply, final adjustments to the quote will occur on-site.</p>
-      </div>
     </div>`;
   return card;
 }
@@ -662,7 +694,7 @@ function specCardHtml(opt) {
   // We attempt to load — onerror shows fallback
   return `<img src="${filename}" alt="${opt.manufacturer} ${opt.model} specs"
     onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-    <div class="rec-spec-missing" style="display:none">Spec card not yet available for ${opt.manufacturer} ${opt.model}<br><span style="font-size:9px">Add ${filename} to your OneDrive Northview-Showroom folder</span></div>`;
+    <div class="rec-spec-missing" style="display:none">Spec card not yet available for ${opt.manufacturer} ${opt.model}<br><span style="font-size:9px">Add ${filename} to your GitHub showroom repo</span></div>`;
 }
 
 function toggleSpecs(idx) {
