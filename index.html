@@ -422,6 +422,7 @@ async function openJob() {
   if (jobId === '__new__') {
     S.config = { jobId:'New Quote', customer:'New Quote', address:'', date:new Date().toLocaleDateString(), options:defaultOptions() };
     S.originalConfig = deepCopy(S.config);
+    S.modifiedOptions = new Set();
     S.pdfBlobUrl = null; S.renderUrls = {};
     showPage('recs'); renderRecs(); return;
   }
@@ -442,6 +443,7 @@ async function openJob() {
       if (opt.insertStyle === undefined) opt.insertStyle = '';
     });
     S.originalConfig = deepCopy(S.config);
+    S.modifiedOptions = new Set();
     // PDF
     const pdfUrl = await getDownloadUrl(drivePath(jobId,'HomeDesignBrief.pdf'));
     if (pdfUrl) {
