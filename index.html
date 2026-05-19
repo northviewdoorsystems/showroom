@@ -166,6 +166,34 @@
     .cf-add-door:hover { border-color:var(--navy); color:var(--navy); }
     .cf-validation { font-size:12px; color:var(--red); background:#fdf0f0;
       border:1px solid #f0c8c8; padding:10px 14px; display:none; }
+    /* Rec card expandable sections */
+    .rec-expand-btn {
+      width:100%; background:none; border:1px solid var(--border);
+      font-family:var(--sans); font-size:10px; font-weight:700;
+      letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);
+      padding:8px 12px; cursor:pointer; transition:all 0.15s;
+      display:flex; align-items:center; justify-content:space-between;
+      margin-top:6px;
+    }
+    .rec-expand-btn:hover { border-color:var(--navy); color:var(--navy); }
+    .rec-expand-btn .rec-chevron { transition:transform 0.2s; font-size:9px; }
+    .rec-expand-btn.open .rec-chevron { transform:rotate(180deg); }
+    .rec-spec-card { display:none; margin-top:8px; }
+    .rec-spec-card img { width:100%; height:auto; display:block; border:1px solid var(--border); }
+    .rec-spec-card.open { display:block; }
+    .rec-spec-missing { font-size:10px; color:var(--muted); font-style:italic;
+      padding:10px; background:var(--tan); border:1px solid var(--border);
+      text-align:center; margin-top:8px; }
+    .rec-section { margin-top:10px; border-top:1px solid var(--border); padding-top:10px; }
+    .rec-section-title { font-size:9px; font-weight:700; letter-spacing:0.18em;
+      text-transform:uppercase; color:var(--navy); margin-bottom:6px; }
+    .rec-section p { font-size:10px; color:var(--muted); line-height:1.6; }
+    .rec-section ul { list-style:none; padding:0; margin:0; }
+    .rec-section ul li { font-size:10px; color:var(--muted); line-height:1.5;
+      padding:2px 0 2px 10px; position:relative; }
+    .rec-section ul li::before { content:'—'; position:absolute; left:0;
+      color:var(--border); font-size:9px; }
+
     .cf-info-tag { font-size:10px; color:var(--muted); font-style:italic; padding:4px 0; }
   </style>
 </head>
@@ -592,9 +620,56 @@ function buildRecCard(opt, idx) {
         <div class="rec-price">${total !== null ? fmt(total) : '—'}</div>
         <div class="rec-price-lbl">installed</div>
       </div>
+      <button class="rec-expand-btn" id="specs-btn-${idx}" onclick="toggleSpecs(${idx})">
+        View Specs <span class="rec-chevron">▾</span>
+      </button>
+      <div class="rec-spec-card" id="specs-card-${idx}">
+        ${specCardHtml(opt)}
+      </div>
       <button class="rec-change-btn" onclick="openConfig(${idx})">Change Build / Configuration</button>
+      <div class="rec-section">
+        <div class="rec-section-title">DASMA Thermal Performance</div>
+        <p class="rec-section">Stated U-Factors come from the Door & Access Systems Manufacturers Association (DASMA) Thermal Performance Verification Program. These ratings are based on testing the entire installed door under controlled conditions, reflecting real-world energy performance — not just a single section of the door.</p>
+      </div>
+      <div class="rec-section">
+        <div class="rec-section-title">Included in Every Quoted Price</div>
+        <ul>
+          <li>One-year labor warranty on all installation work</li>
+          <li>Full track replacement (standard radius)</li>
+          <li>New torsion spring hardware</li>
+          <li>New PVC weatherseal around door opening</li>
+        </ul>
+      </div>
+      <div class="rec-section">
+        <div class="rec-section-title">Quote Assumptions &amp; Limitations</div>
+        <ul>
+          <li>Electrical outlet within reach of opener — no electrical work included</li>
+          <li>Rough opening is square and within standard tolerance</li>
+          <li>Standard ceiling height — no extension kit required</li>
+          <li>Standard wood or steel jamb attachment — no masonry surcharge</li>
+          <li>Level floor — no shimming or threshold work required</li>
+          <li>Quotes are valid for 21 days</li>
+        </ul>
+        <p style="font-size:10px;color:var(--muted);margin-top:6px;font-style:italic">If a site visit reveals any assumption above does not apply, final adjustments to the quote will occur on-site.</p>
+      </div>
     </div>`;
   return card;
+}
+
+function specCardHtml(opt) {
+  if (!opt.manufacturer || !opt.model) return '<div class="rec-spec-missing">Configure a model to view specs</div>';
+  const filename = `card-${opt.manufacturer.toLowerCase()}-${opt.model.toLowerCase()}.png`;
+  // We attempt to load — onerror shows fallback
+  return `<img src="${filename}" alt="${opt.manufacturer} ${opt.model} specs"
+    onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <div class="rec-spec-missing" style="display:none">Spec card not yet available for ${opt.manufacturer} ${opt.model}<br><span style="font-size:9px">Add ${filename} to your OneDrive Northview-Showroom folder</span></div>`;
+}
+
+function toggleSpecs(idx) {
+  const btn = document.getElementById('specs-btn-'+idx);
+  const card = document.getElementById('specs-card-'+idx);
+  btn.classList.toggle('open');
+  card.classList.toggle('open');
 }
 
 // ═══ CONFIG ══════════════════════════════════════════════════
