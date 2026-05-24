@@ -492,6 +492,7 @@ async function openJob() {
       if (opt.color === undefined) opt.color = opt.notes || '';
       if (opt.inserts === undefined) opt.inserts = false;
       if (opt.insertStyle === undefined) opt.insertStyle = '';
+      if (opt.overlayColor === undefined) opt.overlayColor = '';
     });
     S.originalConfig = deepCopy(S.config);
     S.modifiedOptions = new Set();
@@ -520,7 +521,7 @@ function openPdf() {
 }
 function defaultOptions() {
   return ['GOOD','BETTER','BEST'].map(tier => ({
-    tier, manufacturer:'', model:'', panelDesign:'', color:'',
+    tier, manufacturer:'', model:'', panelDesign:'', color:'', overlayColor:'',
     windows:false, windowType:'', inserts:false, insertStyle:'',
     doors:[emptyDoor()], nonStandardDesc:'', nonStandardAmt:0, notes:''
   }));
@@ -538,7 +539,7 @@ function getEffectiveWindowType(opt) {
 function checkWoodtone(mfr, model, color) {
   const C = S.pricing?.colors;
   if (!C || !color) return false;
-  if (mfr === 'Haas') return (C.Haas?.woodgrain||[]).includes(color);
+  if (mfr === 'Haas') { const mc = C.Haas[model] || C.Haas; return (mc?.woodgrain||[]).includes(color); }
   if (mfr === 'CHI') return (C.CHI?.[model]?.accentWoodtone||[]).includes(color);
   return false;
 }
@@ -566,10 +567,11 @@ function getColorGroups(mfr, model) {
   const C = S.pricing?.colors;
   if (!C) return [];
   if (mfr === 'Haas') {
+    const mc = C.Haas[model] || C.Haas;
     return [
-      { label:'Solid Colors', colors: C.Haas.solid, premium:false },
-      { label:'Woodgrain (premium finish)', colors: C.Haas.woodgrain, premium:true }
-    ];
+      { label:'Solid Colors', colors: mc.solid || [], premium:false },
+      { label:'Woodgrain (premium finish)', colors: mc.woodgrain || [], premium:true }
+    ].filter(g => g.colors.length > 0);
   }
   if (mfr === 'CHI') {
     const mc = C.CHI[model];
@@ -723,7 +725,7 @@ function buildRecCard(opt, idx) {
       ${doorInfo ? `<div class="rec-desc">${doorInfo.description}</div>` : ''}
       ${opt.panelDesign ? `<div class="rec-desc">${opt.panelDesign}</div>` : ''}
       ${details.length ? `<div class="rec-details">${details.join(' · ')}</div>` : ''}
-      ${opt.color ? `<div class="rec-color">${opt.color}</div>` : ''}
+      ${opt.color ? `<div class="rec-color">${opt.color}${opt.overlayColor ? ' / ' + opt.overlayColor + ' overlay' : ''}</div>` : ''}
       ${opt.notes ? `<div class="rec-notes">${opt.notes}</div>` : ''}
       ${opt.nonStandardDesc ? `<div class="rec-notes">${opt.nonStandardDesc} · ${fmt(opt.nonStandardAmt)}</div>` : ''}
       <div class="rec-price-row">
@@ -807,10 +809,16 @@ function renderConfigBody() {
 
   // Panel Design (Haas only)
   if (o.manufacturer === 'Haas') {
-    const pd = S.pricing?.panelDesigns?.Haas || [];
-    let pdOpts = '<option value="">— Select Panel Design —</option>';
-    pd.forEach(p => { pdOpts += `<option value="${p}"${o.panelDesign===p?' selected':''}>${p}</option>`; });
-    form1.innerHTML += rowHtml([fieldHtml('Panel Design', `<select onchange="cfSet('panelDesign',this.value)"${!o.model?' disabled':''}>${pdOpts}</select>`)]);
+    const haasDesigns = S.pricing?.panelDesigns?.Haas;
+    const pdKey = 'Haas_' + o.model;
+    const pd = S.pricing?.panelDesigns?.[pdKey] !== undefined
+      ? S.pricing.panelDesigns[pdKey]
+      : (Array.isArray(haasDesigns) ? haasDesigns : []);
+    if (pd.length > 0) {
+      let pdOpts = '<option value="">— Select Panel Design —</option>';
+      pd.forEach(p => { pdOpts += `<option value="${p}"${o.panelDesign===p?' selected':''}>${p}</option>`; });
+      form1.innerHTML += rowHtml([fieldHtml('Panel Design', `<select onchange="cfSet('panelDesign',this.value)"${!o.model?' disabled':''}>${pdOpts}</select>`)]);
+    }
   }
 
   // Color
@@ -845,7 +853,8 @@ function renderConfigBody() {
     // Window type (Haas only)
     if (o.manufacturer === 'Haas') {
       let wtOpts = '<option value="">— Select Window Type —</option>';
-      (S.pricing?.windows||[]).filter(w => w.manufacturer==='Haas').forEach(w => {
+      (S.pricing?.windows||[]).filter(w => w.manufacturer==='Haas' &&
+        (w.applicableModels.length===0 || w.applicableModels.includes(o.model))).forEach(w => {
         wtOpts += `<option value="${w.type}"${o.windowType===w.type?' selected':''}>${w.type}: ${w.description}</option>`;
       });
       form2.innerHTML += `<div class="cf-sub"><div class="cf-form" style="padding:8px 0 0 0">${rowHtml([fieldHtml('Window Type',`<select onchange="cfSet('windowType',this.value)">${wtOpts}</select>`)])}</div></div>`;
@@ -964,8 +973,8 @@ function toggleRowHtml(label, field, checked, di) {
 function cfSet(field, val) {
   const o = opt();
   o[field] = val;
-  if (field==='manufacturer') { o.model=''; o.panelDesign=''; o.color=''; o.windows=false; o.windowType=''; o.inserts=false; o.insertStyle=''; o.doors=[emptyDoor()]; }
-  if (field==='model') { o.panelDesign=''; o.color=''; o.windowType=''; o.inserts=false; o.insertStyle=''; o.doors=[emptyDoor()]; }
+  if (field==='manufacturer') { o.model=''; o.panelDesign=''; o.color=''; o.overlayColor=''; o.windows=false; o.windowType=''; o.inserts=false; o.insertStyle=''; o.doors=[emptyDoor()]; }
+  if (field==='model') { o.panelDesign=''; o.color=''; o.overlayColor=''; o.windowType=''; o.inserts=false; o.insertStyle=''; o.doors=[emptyDoor()]; }
   if (field==='windows' && !val) { o.inserts=false; o.insertStyle=''; }
   if (field==='inserts' && !val) o.insertStyle='';
   renderConfigBody();
@@ -990,8 +999,9 @@ function validateConfig(o) {
   const errs = [];
   if (!o.manufacturer) errs.push('Manufacturer');
   if (!o.model) errs.push('Model');
-  if (o.manufacturer==='Haas' && !o.panelDesign) errs.push('Panel Design');
-  if (!o.color) errs.push('Color / Finish');
+  if (o.manufacturer==='Haas' && !['9600','9200'].includes(o.model) && !o.panelDesign) errs.push('Panel Design');
+  if (!o.color) errs.push('Door Color / Finish');
+  if (['9600','9200'].includes(o.model) && !o.overlayColor) errs.push('Overlay Color');
   if (!o.doors.length) errs.push('At least one door');
   o.doors.forEach((d,i) => {
     if (!d.size) errs.push(`Door ${i+1} size`);
@@ -1130,7 +1140,7 @@ function buildPrintOption(opt) {
       ${doorInfo ? `<div class="print-opt-desc">${escHtml(doorInfo.description)}</div>` : ''}
       ${opt.panelDesign ? `<div class="print-opt-desc">${escHtml(opt.panelDesign)}</div>` : ''}
       ${details.length ? `<div class="print-opt-details">${details.join(' &middot; ')}</div>` : ''}
-      ${opt.color ? `<div class="print-opt-color">${escHtml(opt.color)}</div>` : ''}
+      ${opt.color ? `<div class="print-opt-color">${escHtml(opt.color)}${opt.overlayColor?' / '+escHtml(opt.overlayColor)+' overlay':''}</div>` : ''}
       <div class="print-opt-price">${total !== null ? fmt(total) : '—'}</div>
       <div class="print-opt-price-lbl">installed &middot; tax &amp; CC incl.</div>
     </div>`;
