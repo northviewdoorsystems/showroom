@@ -820,6 +820,7 @@ function renderConfigBody() {
   // Color
   if (o.manufacturer && o.model) {
     const groups = getColorGroups(o.manufacturer, o.model);
+    const isOverlay = ['9600','9200'].includes(o.model);
     let colorOpts = '<option value="">— Select Color / Finish —</option>';
     groups.forEach(g => {
       colorOpts += `<optgroup label="${g.label}">`;
@@ -828,9 +829,24 @@ function renderConfigBody() {
       });
       colorOpts += '</optgroup>';
     });
-    form1.innerHTML += rowHtml([fieldHtml('Color / Finish', `<select onchange="cfSet('color',this.value)">${colorOpts}</select>`)]);
+    const doorColorLabel = isOverlay ? 'Door Color' : 'Color / Finish';
+    form1.innerHTML += rowHtml([fieldHtml(doorColorLabel, `<select onchange="cfSet('color',this.value)">${colorOpts}</select>`)]);
     if (checkWoodtone(o.manufacturer, o.model, o.color)) {
-      form1.innerHTML += `<div class="cf-info-tag">✦ Woodgrain premium applies to this selection</div>`;
+      form1.innerHTML += `<div class="cf-info-tag">✦ Woodgrain premium applies to door color</div>`;
+    }
+    if (isOverlay) {
+      let ovrOpts = '<option value="">— Select Overlay Color —</option>';
+      groups.forEach(g => {
+        ovrOpts += `<optgroup label="${g.label}">`;
+        g.colors.forEach(c => {
+          ovrOpts += `<option value="${c}"${o.overlayColor===c?' selected':''}>${c}</option>`;
+        });
+        ovrOpts += '</optgroup>';
+      });
+      form1.innerHTML += rowHtml([fieldHtml('Overlay Color', `<select onchange="cfSet('overlayColor',this.value)">${ovrOpts}</select>`)]);
+      if (checkWoodtone(o.manufacturer, o.model, o.overlayColor)) {
+        form1.innerHTML += `<div class="cf-info-tag">✦ Woodgrain premium applies to overlay color</div>`;
+      }
     }
   }
 
