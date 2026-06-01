@@ -1159,7 +1159,7 @@ function buildPrintOption(opt) {
       ${details.length ? `<div class="print-opt-details">${details.join(' &middot; ')}</div>` : ''}
       ${opt.color ? `<div class="print-opt-color">${escHtml(opt.color)}${opt.overlayColor?' / '+escHtml(opt.overlayColor)+' overlay':''}</div>` : ''}
       <div class="print-opt-price">${total !== null ? fmt(total) : '—'}</div>
-      <div class="print-opt-price-lbl">installed &middot; tax &amp; CC incl.</div>
+      <div class="print-opt-price-lbl">installed &middot; sales tax incl.</div>
     </div>`;
 }
 
