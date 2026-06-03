@@ -531,7 +531,7 @@ function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
 
 // ═══ PRODUCT DATA HELPERS ════════════════════════════════════
 function getChiWindowType(model) {
-  return {'2240':'Type 5a','4240':'Type 5b','2283':'Type 1a','2206':'Type 1a','2216':'Type 1a','4283':'Type 1b','4206':'Type 1b','4216':'Type 1b','5216':'Type 2','5916':'Type 2','2516':'Type 2','5602':'Type 3','5600':'Type 4'}[model] || '';
+  return {'2240':'Short Panel','2206':'Short Panel','2216':'Short Panel','2283':'Short Panel','4240':'Long Panel','4206':'Long Panel','4216':'Long Panel','4283':'Long Panel','5216':'Long Panel','5916':'Long Panel','2516':'Long Panel','5602':'Shoreline Overlay','5600':'Carriage Overlay'}[model] || '';
 }
 function getEffectiveWindowType(opt) {
   return opt.manufacturer === 'Haas' ? opt.windowType : getChiWindowType(opt.model);
@@ -594,6 +594,22 @@ function sizesForModel(mfr, model) {
 }
 
 // ═══ CALC ════════════════════════════════════════════════════
+function getWindowCosts(winEntry, model) {
+  if (winEntry.tiers) {
+    for (const tier of Object.values(winEntry.tiers)) {
+      if (tier.models.includes(model)) return { windowCost1Car:tier.windowCost1Car, insertCost1Car:tier.insertCost1Car };
+    }
+    const first = Object.values(winEntry.tiers)[0];
+    return { windowCost1Car:first.windowCost1Car, insertCost1Car:first.insertCost1Car };
+  }
+  return { windowCost1Car:winEntry.windowCost1Car, insertCost1Car:winEntry.insertCost1Car };
+}
+function getInsertCost(winEntry, insertStyle) {
+  if (winEntry.insertCostOverrides && insertStyle && winEntry.insertCostOverrides[insertStyle] !== undefined)
+    return winEntry.insertCostOverrides[insertStyle];
+  return null;
+}
+
 function calcOptionTotal(opt) {
   if (!S.pricing || !opt.manufacturer || !opt.model) return null;
   if (!opt.doors.length || opt.doors.some(d => !d.size)) return null;
@@ -612,8 +628,12 @@ function calcOptionTotal(opt) {
     let winCost=0, insCost=0;
     if (winEntry) {
       const rows = getWindowRows(winEntry, door.size);
-      winCost = winEntry.windowCost1Car * cars * rows;
-      if (opt.inserts) insCost = winEntry.insertCost1Car * cars * rows;
+      const wCosts = getWindowCosts(winEntry, opt.model);
+      winCost = wCosts.windowCost1Car * cars * rows;
+      if (opt.inserts) {
+        const insOverride = getInsertCost(winEntry, opt.insertStyle);
+        insCost = (insOverride !== null ? insOverride : wCosts.insertCost1Car) * cars * rows;
+      }
     }
     const sealCost = A.weatherseal1Car * cars;
     const matCost = dd.doorCost + woodCost + winCost + insCost + sealCost;
@@ -872,13 +892,21 @@ function renderConfigBody() {
           ? (w.applicableModels.length>0 && w.applicableModels.includes(o.model))
           : w.applicableModels.length===0
       )).forEach(w => {
-        wtOpts += `<option value="${w.type}"${o.windowType===w.type?' selected':''}>${w.type}: ${w.description}</option>`;
+        wtOpts += `<option value="${w.type}"${o.windowType===w.type?' selected':''}>${w.type}</option>`;
       });
       form2.innerHTML += `<div class="cf-sub"><div class="cf-form" style="padding:8px 0 0 0">${rowHtml([fieldHtml('Window Type',`<select onchange="cfSet('windowType',this.value)">${wtOpts}</select>`)])}</div></div>`;
     } else if (o.manufacturer === 'CHI' && o.model) {
       const wt = getChiWindowType(o.model);
       const wEntry = S.pricing?.windows.find(w => w.manufacturer==='CHI' && w.type===wt);
-      if (wEntry) form2.innerHTML += `<div class="cf-info-tag" style="padding:6px 0 2px 0">Window type: ${wEntry.description} (auto-selected for ${o.model})</div>`;
+      if (wEntry) {
+      let tierLabel = '';
+      if (wEntry.tiers) {
+        for (const [tn, tier] of Object.entries(wEntry.tiers)) {
+          if (tier.models.includes(o.model)) { tierLabel = ` — ${tn} tier`; break; }
+        }
+      }
+      form2.innerHTML += `<div class="cf-info-tag" style="padding:6px 0 2px 0">Window type: ${wEntry.type}${tierLabel} (auto-selected for ${o.model})</div>`;
+    }
     }
 
     // Inserts toggle
@@ -889,6 +917,11 @@ function renderConfigBody() {
       let insOpts = '<option value="">— Select Insert Style —</option>';
       inserts.forEach(i => { insOpts += `<option value="${i}"${o.insertStyle===i?' selected':''}>${i}</option>`; });
       form2.innerHTML += `<div class="cf-sub"><div class="cf-form" style="padding:8px 0 0 0">${rowHtml([fieldHtml('Insert Style',`<select onchange="cfSet('insertStyle',this.value)">${insOpts}</select>`)])}</div></div>`;
+      if (o.insertStyle && winEntry?.insertCostOverrides?.[o.insertStyle]) {
+        const dd = S.pricing?.doors.find(d => d.manufacturer===o.manufacturer && d.model===o.model && d.size===o.doors[0]?.size);
+        const cars = dd?.carCount || 1;
+        form2.innerHTML += `<div class="cf-info-tag">❆ Decorative Glass insert pricing applies (${fmt(winEntry.insertCostOverrides[o.insertStyle] * cars)} per door)</div>`;
+      }
       if (!anyDoorIsTwoCar(o)) {
         form2.innerHTML += `<div class="cf-info-tag">Double-arch and 4-piece inserts available because at least one door is 2-car (16-wide)</div>`;
       }
