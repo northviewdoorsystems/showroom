@@ -913,6 +913,9 @@ function renderConfigBody() {
     form2.innerHTML += toggleRowHtml('Window Inserts', 'inserts', o.inserts);
 
     if (o.inserts) {
+      const effWt = getEffectiveWindowType(o);
+      const winEntry = effWt
+        ? S.pricing?.windows.find(w => w.manufacturer===o.manufacturer && w.type===effWt) : null;
       const inserts = getInsertList(o);
       let insOpts = '<option value="">— Select Insert Style —</option>';
       inserts.forEach(i => { insOpts += `<option value="${i}"${o.insertStyle===i?' selected':''}>${i}</option>`; });
