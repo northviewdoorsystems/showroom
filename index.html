@@ -253,6 +253,7 @@
         font-family: Arial; font-size: 10px; color: #7A786E; font-style: italic; text-align: center; padding: 8px; }
       .print-footer-img { width: 100%; height: auto; display: block; }
     }
+    .rec-spec-block { min-height: 58px; }
   </style>
 </head>
 <body>
@@ -742,9 +743,11 @@ function buildRecCard(opt, idx) {
     <div class="rec-body">
       <div class="rec-tier">${opt.tier}</div>
       <div class="rec-model">${opt.manufacturer||'—'} ${opt.model||''}</div>
-      ${doorInfo ? `<div class="rec-desc">${doorInfo.description}</div>` : ''}
-      ${opt.panelDesign ? `<div class="rec-desc">${opt.panelDesign}</div>` : ''}
-      ${details.length ? `<div class="rec-details">${details.join(' · ')}</div>` : ''}
+        <div class="rec-spec-block">
+          ${doorInfo ? `<div class="rec-desc">${doorInfo.description}</div>` : ''}
+          ${opt.panelDesign ? `<div class="rec-desc">${opt.panelDesign}</div>` : ''}
+          ${details.length ? `<div class="rec-details">${details.join(' · ')}</div>` : ''}
+       </div>
       ${opt.color ? `<div class="rec-color">${opt.color}${opt.overlayColor ? ' / ' + opt.overlayColor + ' overlay' : ''}</div>` : ''}
       ${opt.notes ? `<div class="rec-notes">${opt.notes}</div>` : ''}
       ${opt.nonStandardDesc ? `<div class="rec-notes">${opt.nonStandardDesc} · ${fmt(opt.nonStandardAmt)}</div>` : ''}
