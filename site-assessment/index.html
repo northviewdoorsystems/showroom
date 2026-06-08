@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Northview — Site Assessment</title>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #152848; --red: #8B1E1E; --tan: #F5F3EE;
+      --border: #D8D4CA; --body: #3A3A36; --muted: #7A786E; --white: #fff;
+      --green: #1A6B3A; --amber: #B07A00; --danger-bg: #fdf0f0; --danger-border: #f0c8c8;
+      --serif: 'Libre Baskerville', Georgia, serif;
+      --sans: 'Source Sans 3', system-ui, sans-serif;
+    }
+    html, body { font-family: var(--sans); color: var(--body); background: var(--tan); height: 100%; overflow: hidden; -webkit-text-size-adjust: 100%; }
+    .page { display: none; position: fixed; inset: 0; overflow: hidden; flex-direction: column; }
+    .page.active { display: flex; }
+
+    /* ── Loading overlay ── */
+    #loading-overlay { display: none; position: fixed; inset: 0; background: rgba(21,40,72,0.88); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
+    #loading-overlay.active { display: flex; }
+    .spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.15); border-top-color: white; border-radius: 50%; animation: spin 0.75s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.65); letter-spacing: 0.1em; text-transform: uppercase; }
+
+    /* ── Nav bar ── */
+    .nav-bar { background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; min-height: 54px; flex-shrink: 0; gap: 10px; }
+    .nav-logo-text { font-family: var(--serif); font-weight: 700; font-size: 13px; color: var(--navy); }
+    .nav-divider { width: 1px; height: 24px; background: var(--border); }
+    .nav-tool-label { font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+    .nav-spacer { flex: 1; }
+    .nav-btn { background: none; border: 1px solid var(--border); font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--body); padding: 7px 12px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .nav-btn:hover { border-color: var(--navy); color: var(--navy); }
+    .nav-btn.primary { background: var(--navy); color: white; border-color: var(--navy); }
+    .nav-btn.primary:hover { background: #1e3a6a; }
+    .nav-btn.primary:disabled { background: var(--border); border-color: var(--border); cursor: default; }
+    .nav-btn.success { background: var(--green); color: white; border-color: var(--green); }
+    .nav-btn.danger { border-color: var(--red); color: var(--red); }
+    .nav-btn.danger:hover { background: var(--red); color: white; }
+
+    /* ── Save status badge ── */
+    #save-status { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 10px; border-radius: 2px; display: none; }
+    #save-status.unsaved { display: inline-block; background: #fff8e1; color: var(--amber); border: 1px solid #f0d870; }
+    #save-status.saving { display: inline-block; background: #e8f0fe; color: var(--navy); border: 1px solid #c5d3f0; }
+    #save-status.saved { display: inline-block; background: #e9f6ee; color: var(--green); border: 1px solid #a8d8b9; }
+    #save-status.error { display: inline-block; background: var(--danger-bg); color: var(--red); border: 1px solid var(--danger-border); }
+
+    /* ═══ HOME PAGE ═══ */
+    #page-home { background: var(--white); align-items: center; justify-content: center; padding: 24px; }
+    .home-inner { border: 3px solid var(--navy); padding: 44px 40px 36px; width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; }
+    .home-wordmark { font-family: var(--serif); font-weight: 700; font-size: 20px; color: var(--navy); text-align: center; margin-bottom: 4px; letter-spacing: 0.02em; }
+    .home-sub { font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--red); text-align: center; margin-bottom: 32px; }
+    .home-field-label { font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; display: block; width: 100%; }
+    .home-select { width: 100%; font-family: var(--sans); font-size: 14px; font-weight: 600; padding: 13px 36px 13px 14px; border-radius: 0; appearance: none; -webkit-appearance: none; cursor: pointer; outline: none; display: block; color: var(--navy); border: 1px solid var(--border); background: var(--tan); background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23152848' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; margin-bottom: 10px; }
+    .home-open-btn { width: 100%; background: var(--navy); color: white; border: none; font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; padding: 14px; cursor: pointer; transition: background 0.15s; }
+    .home-open-btn:hover { background: #1e3a6a; }
+    .home-open-btn:disabled { background: var(--border); cursor: default; }
+    .home-signin-btn { width: 100%; background: var(--navy); color: white; border: none; font-family: var(--sans); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; padding: 14px; cursor: pointer; transition: background 0.15s; }
+    .home-signin-btn:hover { background: #1e3a6a; }
+    #home-auth-area, #home-job-area { width: 100%; }
+    #home-job-area { display: none; }
+    .home-user-row { margin-top: 14px; font-size: 11px; color: var(--muted); display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    .home-signout { background: none; border: none; font-family: var(--sans); font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; }
+    .home-error { margin-top: 12px; font-size: 12px; color: var(--red); background: var(--danger-bg); border: 1px solid var(--danger-border); padding: 10px 14px; width: 100%; display: none; }
+
+    /* ═══ ASSESSMENT PAGE ═══ */
+    #page-assess { background: var(--tan); }
+    .assess-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; -webkit-overflow-scrolling: touch; }
+
+    /* ── Completeness banner ── */
+    #completeness-bar { background: var(--white); border: 2px solid var(--border); padding: 14px 16px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; position: sticky; top: 0; z-index: 10; }
+    #completeness-bar.complete { border-color: var(--green); background: #e9f6ee; }
+    #completeness-bar.incomplete { border-color: var(--red); background: var(--danger-bg); }
+    .completeness-icon { flex-shrink: 0; width: 28px; height: 28px; }
+    .completeness-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .completeness-label.complete { color: var(--green); }
+    .completeness-label.incomplete { color: var(--red); }
+    .completeness-missing { font-size: 11px; color: var(--red); margin-top: 2px; }
+    .completeness-ok { font-size: 11px; color: var(--green); margin-top: 2px; }
+    .completeness-progress { height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+    .completeness-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.3s ease; }
+    .completeness-fill.partial { background: var(--amber); }
+    .completeness-right { margin-left: auto; font-size: 20px; font-weight: 700; font-family: var(--serif); color: var(--navy); }
+
+    /* ── Sections ── */
+    .sa-section { background: var(--white); border: 1px solid var(--border); }
+    .sa-section-hdr { background: var(--tan); border-bottom: 1px solid var(--border); padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; }
+    .sa-section-title { font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--navy); }
+    .sa-section-status { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .sa-section-status.ok { color: var(--green); }
+    .sa-section-status.missing { color: var(--red); }
+
+    /* ── Door measurement cards ── */
+    .door-card { border-bottom: 1px solid var(--border); padding: 12px 15px; }
+    .door-card:last-child { border-bottom: none; }
+    .door-card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .door-complete-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background 0.2s; }
+    .door-complete-dot.ok { background: var(--green); }
+    .door-complete-dot.missing { background: var(--red); }
+
+    /* ── Measurement grid ── */
+    .meas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+    .meas-field { display: flex; flex-direction: column; gap: 3px; }
+    .meas-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    .meas-input { font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--navy); background: var(--tan); border: 1.5px solid var(--border); padding: 9px 10px; width: 100%; outline: none; border-radius: 0; transition: border-color 0.15s; -webkit-appearance: none; }
+    .meas-input:focus { border-color: var(--navy); background: white; }
+    .meas-input.required-empty { border-color: #e8a0a0; background: #fff8f8; }
+    .meas-input::placeholder { color: var(--border); font-weight: 400; font-size: 13px; }
+    .meas-unit { font-size: 9px; color: var(--muted); text-align: right; margin-top: 2px; }
+
+    /* ── Track solution ── */
+    .track-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--border); margin-top: 4px; }
+    .track-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    .track-select { flex: 1; font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--navy); background: var(--tan); border: 1.5px solid var(--border); padding: 8px 28px 8px 10px; outline: none; border-radius: 0; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237A786E' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; min-height: 38px; }
+    .track-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 9px; flex-shrink: 0; }
+    .track-badge.standard { background: #e9f6ee; color: var(--green); border: 1px solid #a8d8b9; }
+    .track-badge.low { background: #fff8e1; color: var(--amber); border: 1px solid #f0d870; }
+    .track-badge.ext { background: #fdf0f0; color: var(--red); border: 1px solid var(--danger-border); }
+    .track-badge.na { background: var(--tan); color: var(--muted); border: 1px solid var(--border); }
+    .track-auto-note { font-size: 10px; color: var(--green); font-style: italic; margin-top: 4px; }
+
+    /* ── Generic form fields ── */
+    .sa-form { padding: 12px 15px; display: flex; flex-direction: column; gap: 8px; }
+    .sa-row { display: flex; gap: 8px; }
+    .sa-group { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+    .sa-group label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    .sa-group input, .sa-group select, .sa-group textarea { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--navy); background: var(--tan); border: 1.5px solid var(--border); padding: 8px 10px; width: 100%; outline: none; border-radius: 0; -webkit-appearance: none; transition: border-color 0.15s; }
+    .sa-group input:focus, .sa-group select:focus, .sa-group textarea:focus { border-color: var(--navy); background: white; }
+    .sa-group textarea { resize: vertical; min-height: 80px; font-weight: 400; line-height: 1.5; }
+    .sa-group input::placeholder, .sa-group textarea::placeholder { color: var(--border); font-weight: 400; }
+
+    /* ── Checkbox grid ── */
+    .check-grid { padding: 10px 15px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .check-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); cursor: pointer; }
+    .check-item:nth-child(-n+2) { border-top: none; }
+    .check-box { width: 20px; height: 20px; border: 2px solid var(--border); background: var(--tan); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; cursor: pointer; }
+    .check-box.checked { background: var(--navy); border-color: var(--navy); }
+    .check-box-mark { color: white; font-size: 12px; line-height: 1; display: none; }
+    .check-box.checked .check-box-mark { display: block; }
+    .check-text { font-size: 12px; font-weight: 600; color: var(--body); line-height: 1.3; }
+    .check-sub { font-size: 10px; color: var(--muted); font-weight: 400; }
+
+    /* ── Photo checklist ── */
+    .photo-grid { padding: 10px 15px 14px; display: flex; flex-direction: column; gap: 0; }
+    .photo-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border); cursor: pointer; }
+    .photo-item:first-child { border-top: none; }
+
+    /* ── Notes ── */
+    .notes-pad { padding: 12px 15px; }
+    .notes-pad textarea { font-family: var(--sans); font-size: 13px; color: var(--body); background: var(--tan); border: 1.5px solid var(--border); padding: 10px 12px; width: 100%; outline: none; border-radius: 0; resize: none; height: 120px; line-height: 1.6; font-weight: 400; transition: border-color 0.15s; }
+    .notes-pad textarea:focus { border-color: var(--navy); background: white; }
+    .notes-pad textarea::placeholder { color: var(--border); }
+
+    /* ── Door count selector (home) ── */
+    .door-count-row { display: flex; gap: 6px; width: 100%; margin-bottom: 10px; }
+    .door-count-btn { flex: 1; background: var(--tan); border: 1.5px solid var(--border); font-family: var(--sans); font-size: 13px; font-weight: 700; color: var(--muted); padding: 11px; cursor: pointer; transition: all 0.15s; text-align: center; }
+    .door-count-btn.active { background: var(--navy); border-color: var(--navy); color: white; }
+
+    /* ── Offline toast ── */
+    #offline-toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--red); color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 18px; white-space: nowrap; display: none; z-index: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
+    #offline-toast.visible { display: block; }
+
+    /* ── Retry banner ── */
+    #retry-banner { display: none; background: #fff8e1; border: 1px solid #f0d870; padding: 10px 14px; font-size: 11px; color: var(--amber); font-weight: 600; flex-shrink: 0; align-items: center; gap: 10px; }
+    #retry-banner.visible { display: flex; }
+    .retry-btn { margin-left: auto; background: none; border: 1px solid var(--amber); font-family: var(--sans); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); padding: 5px 12px; cursor: pointer; white-space: nowrap; }
+    .retry-btn:hover { background: var(--amber); color: white; }
+  </style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Loading…</div>
+</div>
+
+<!-- Offline toast -->
+<div id="offline-toast">⚠ No connection — data saved locally</div>
+
+<!-- ═══ HOME PAGE ═══ -->
+<div class="page active" id="page-home">
+  <div class="home-inner">
+    <div class="home-wordmark">Northview Doors &amp; Systems</div>
+    <div class="home-sub">Site Assessment</div>
+
+    <div id="home-auth-area">
+      <button class="home-signin-btn" onclick="signIn()">Sign In with Microsoft</button>
+      <div class="home-error" id="home-error"></div>
+    </div>
+
+    <div id="home-job-area">
+      <span class="home-field-label">Select Job</span>
+      <select class="home-select" id="job-select" onchange="onJobSelect()">
+        <option value="">— Select a job folder —</option>
+      </select>
+      <span class="home-field-label" style="margin-top:12px">Number of Doors</span>
+      <div class="door-count-row">
+        <button class="door-count-btn active" id="dc-1" onclick="setDoorCount(1)">1</button>
+        <button class="door-count-btn" id="dc-2" onclick="setDoorCount(2)">2</button>
+        <button class="door-count-btn" id="dc-3" onclick="setDoorCount(3)">3</button>
+      </div>
+      <button class="home-open-btn" id="open-btn" onclick="openJob()" disabled>Open Assessment</button>
+      <div class="home-user-row">
+        <span id="home-user-name" style="font-size:11px;color:var(--muted)"></span>
+        <button class="home-signout" onclick="signOut()">Sign out</button>
+      </div>
+      <div class="home-error" id="home-error-job"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ASSESSMENT PAGE ═══ -->
+<div class="page" id="page-assess">
+
+  <!-- Nav -->
+  <div class="nav-bar">
+    <div style="display:flex;flex-direction:column;line-height:1.2">
+      <span class="nav-logo-text">Northview</span>
+      <span class="nav-tool-label">Site Assessment</span>
+    </div>
+    <div class="nav-divider"></div>
+    <div style="display:flex;flex-direction:column;line-height:1.2">
+      <span style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)" id="nav-job-id"></span>
+      <span style="font-size:12px;font-weight:700;color:var(--navy)" id="nav-customer"></span>
+    </div>
+    <div class="nav-spacer"></div>
+    <span id="save-status"></span>
+    <button class="nav-btn primary" id="save-btn" onclick="saveAssessment()">Save</button>
+    <button class="nav-btn" onclick="goHome()">← Jobs</button>
+  </div>
+
+  <!-- Retry banner (shown after offline save failure) -->
+  <div id="retry-banner">
+    <span>⚠ Save failed — data preserved locally</span>
+    <button class="retry-btn" onclick="retrySave()">Retry Now</button>
+  </div>
+
+  <!-- Scrollable body -->
+  <div class="assess-body" id="assess-body">
+
+    <!-- Completeness bar -->
+    <div id="completeness-bar" class="incomplete">
+      <svg class="completeness-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle id="comp-circle" cx="14" cy="14" r="12" stroke="#D8D4CA" stroke-width="2" fill="none"/>
+        <circle id="comp-arc" cx="14" cy="14" r="12" stroke="#1A6B3A" stroke-width="2.5" fill="none"
+          stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4"
+          transform="rotate(-90 14 14)" style="transition:stroke-dashoffset 0.4s ease"/>
+      </svg>
+      <div style="flex:1;min-width:0">
+        <div id="comp-label" class="completeness-label incomplete">Measurements Incomplete</div>
+        <div id="comp-detail" class="completeness-missing">Fill in all required measurements before leaving the site.</div>
+      </div>
+      <div class="completeness-right" id="comp-pct">0%</div>
+    </div>
+
+    <!-- Door measurements injected here by JS -->
+    <div id="door-sections"></div>
+
+    <!-- Site Conditions -->
+    <div class="sa-section">
+      <div class="sa-section-hdr">
+        <span class="sa-section-title">Site Conditions</span>
+        <span class="sa-section-status" id="site-cond-status"></span>
+      </div>
+      <div class="check-grid" id="site-cond-grid"></div>
+    </div>
+
+    <!-- Photo Checklist -->
+    <div class="sa-section">
+      <div class="sa-section-hdr">
+        <span class="sa-section-title">Photo Checklist</span>
+        <span class="sa-section-status" id="photo-status"></span>
+      </div>
+      <div class="photo-grid" id="photo-grid"></div>
+    </div>
+
+    <!-- Field Notes -->
+    <div class="sa-section">
+      <div class="sa-section-hdr">
+        <span class="sa-section-title">Field Notes</span>
+      </div>
+      <div class="notes-pad">
+        <textarea id="field-notes" placeholder="Anything unusual — low ceiling, beam in the way, header condition, masonry, electrical location, customer concerns…" oninput="onDataChange()"></textarea>
+      </div>
+    </div>
+
+    <div style="height:40px;flex-shrink:0"></div>
+  </div>
+</div>
+
+<script>
+// ═══ CONFIG (clone from ShowRoom — only scope changes) ═══════════
+const CLIENT_ID     = '1ad6edd0-985a-4202-81d2-a24d737936f9';
+const REDIRECT_URI  = 'https://northviewdoorsystems.github.io/site-assessment/';
+const BASE_SEGMENTS = ['Documents','For-Profit Ventures','Northview Doors& Systems','Reference','Northview-Showroom'];
+const SCOPES        = ['Files.ReadWrite'];  // upgraded from Files.Read
+
+let msalInstance;
+try {
+  msalInstance = new msal.PublicClientApplication({
+    auth: { clientId: CLIENT_ID, authority: 'https://login.microsoftonline.com/common', redirectUri: REDIRECT_URI },
+    cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: true }
+  });
+} catch(e) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('home-error');
+    if (el) { el.textContent = 'Init error: ' + e.message; el.style.display = 'block'; }
+  });
+}
+
+// ═══ TABLE 10 — Track solution lookup ══════════════════════════
+// Returns { label, type } based on headroom inches
+// Standard: 10–12" | Low-Clearance: 4.75–9.75" | Ext. Low: <4.75" | Unknown: no headroom
+function trackFromHeadroom(inches) {
+  if (inches === null || isNaN(inches)) return { label: '—', type: 'na' };
+  if (inches >= 10)         return { label: 'Standard Radius',          type: 'standard' };
+  if (inches >= 6.25)       return { label: 'Low-Clearance Radius',     type: 'low' };
+  if (inches >= 4.75)       return { label: 'Ext. Low-Clearance (Hi-Lift option)', type: 'ext' };
+  return                           { label: 'Not Feasible (<4.75")',     type: 'ext' };
+}
+
+// ═══ SITE CONDITION ITEMS ═══════════════════════════════════════
+const SITE_CONDITIONS = [
+  { id: 'jamb_wood',      label: 'Wood Jamb',           sub: 'Standard install' },
+  { id: 'jamb_steel',     label: 'Steel Jamb',          sub: 'May need adapters' },
+  { id: 'jamb_masonry',   label: 'Masonry / Brick',     sub: 'Surcharge applies' },
+  { id: 'header_good',    label: 'Header — Good',       sub: 'No repair needed' },
+  { id: 'header_repair',  label: 'Header — Needs Repair', sub: 'Flag for scope' },
+  { id: 'floor_level',    label: 'Floor Level',         sub: '' },
+  { id: 'floor_uneven',   label: 'Floor Uneven',        sub: 'Shim / threshold work' },
+  { id: 'outlet_ok',      label: 'Outlet in Reach',     sub: 'Opener-ready' },
+  { id: 'outlet_needed',  label: 'No Outlet',           sub: 'Electrical required' },
+  { id: 'ceiling_clear',  label: 'Ceiling Clear',       sub: 'No obstructions' },
+  { id: 'beam_post',      label: 'Beam / Post',         sub: 'May affect spring placement' },
+  { id: 'painted_over',   label: 'Old Door Painted Over', sub: 'Removal may be harder' },
+];
+
+// ═══ PHOTO CHECKLIST ═══════════════════════════════════════════
+const PHOTO_ITEMS = [
+  { id: 'photo_exterior',  label: 'Exterior — straight-on from driveway' },
+  { id: 'photo_interior',  label: 'Interior — full view (headroom + side)' },
+  { id: 'photo_track',     label: 'Existing track & hardware' },
+  { id: 'photo_header',    label: 'Header close-up' },
+  { id: 'photo_jamb_l',    label: 'Left jamb' },
+  { id: 'photo_jamb_r',    label: 'Right jamb' },
+  { id: 'photo_floor',     label: 'Floor / threshold' },
+  { id: 'photo_opener',    label: 'Existing opener (if any)' },
+];
+
+// ═══ STATE ══════════════════════════════════════════════════════
+let S = {
+  jobId: null,
+  doorCount: 1,
+  assessment: null,      // working data object
+  pendingSave: false,    // local changes not yet synced
+  saveRetry: null,       // timeout for retry
+};
+
+// ═══ LOCAL PERSISTENCE ══════════════════════════════════════════
+function localKey() { return `sa_draft_${S.jobId}`; }
+
+function saveLocal() {
+  try {
+    localStorage.setItem(localKey(), JSON.stringify({
+      ts: Date.now(),
+      data: S.assessment
+    }));
+  } catch(e) {}
+}
+
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(localKey());
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function clearLocal() {
+  try { localStorage.removeItem(localKey()); } catch(e) {}
+}
+
+// ═══ AUTH (cloned from ShowRoom) ═══════════════════════════════
+async function getToken() {
+  const acct = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
+  if (!acct) throw new Error('Not signed in');
+  try {
+    return (await msalInstance.acquireTokenSilent({ scopes: SCOPES, account: acct })).accessToken;
+  } catch(e) {
+    if (e instanceof msal.InteractionRequiredAuthError) await msalInstance.acquireTokenRedirect({ scopes: SCOPES });
+    throw e;
+  }
+}
+async function signIn() {
+  const err = document.getElementById('home-error');
+  try {
+    if (!msalInstance) throw new Error('MSAL did not initialize — check browser console.');
+    await msalInstance.loginRedirect({ scopes: SCOPES });
+  } catch(e) { err.textContent = 'Sign-in error: ' + e.message; err.style.display = 'block'; }
+}
+async function signOut() { await msalInstance.logoutRedirect({ postLogoutRedirectUri: REDIRECT_URI }); }
+
+// ═══ GRAPH API ══════════════════════════════════════════════════
+function drivePath(...segs) {
+  return '/me/drive/root:/' + [...BASE_SEGMENTS, ...segs].map(encodeURIComponent).join('/');
+}
+async function graphFetch(path) {
+  const token = await getToken();
+  const r = await fetch('https://graph.microsoft.com/v1.0' + path, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  if (!r.ok) { if (r.status === 404) return null; throw new Error('Graph ' + r.status); }
+  return r.json();
+}
+async function graphPut(path, body) {
+  const token = await getToken();
+  const r = await fetch('https://graph.microsoft.com/v1.0' + path + ':/content', {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error('Graph PUT ' + r.status);
+  return r.json();
+}
+
+// ═══ INIT ═══════════════════════════════════════════════════════
+(async () => {
+  try {
+    const resp = await msalInstance.handleRedirectPromise();
+    if (resp) msalInstance.setActiveAccount(resp.account);
+    if (msalInstance.getAllAccounts().length > 0) {
+      await loadJobs(msalInstance.getAllAccounts()[0]);
+    } else {
+      showPage('home');
+    }
+  } catch(e) { showPage('home'); }
+})();
+
+async function loadJobs(account) {
+  showLoading('Loading jobs…');
+  showPage('home');
+  try {
+    const data = await graphFetch(drivePath() + ':/children?$select=name,folder&$orderby=name%20desc');
+    const jobs = (data?.value || []).filter(i => i.folder && /^NV-/i.test(i.name)).map(i => i.name);
+    const sel = document.getElementById('job-select');
+    jobs.forEach(j => {
+      const o = document.createElement('option');
+      o.value = o.textContent = j;
+      sel.appendChild(o);
+    });
+    document.getElementById('home-user-name').textContent = account.name || account.username;
+    document.getElementById('home-auth-area').style.display = 'none';
+    document.getElementById('home-job-area').style.display = 'block';
+  } catch(e) {
+    document.getElementById('home-error').textContent = e.message;
+    document.getElementById('home-error').style.display = 'block';
+  }
+  hideLoading();
+}
+
+// ═══ HOME ACTIONS ═══════════════════════════════════════════════
+function onJobSelect() {
+  document.getElementById('open-btn').disabled = !document.getElementById('job-select').value;
+}
+
+function setDoorCount(n) {
+  S.doorCount = n;
+  [1,2,3].forEach(i => document.getElementById('dc-'+i).classList.toggle('active', i === n));
+}
+
+async function openJob() {
+  const jobId = document.getElementById('job-select').value;
+  if (!jobId) return;
+  S.jobId = jobId;
+
+  showLoading('Loading assessment…');
+
+  // Try to load existing assessment from OneDrive
+  let existing = null;
+  try {
+    const r = await graphFetch(drivePath(jobId, 'site_assessment.json'));
+    if (r) {
+      // fetch content
+      const token = await getToken();
+      const cr = await fetch('https://graph.microsoft.com/v1.0' + drivePath(jobId, 'site_assessment.json') + ':/content', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (cr.ok) existing = await cr.json();
+    }
+  } catch(e) {}
+
+  // Check local draft (newer wins)
+  const local = loadLocal();
+  if (local && (!existing || local.ts > (existing._savedAt || 0))) {
+    existing = local.data;
+  }
+
+  // Build base assessment structure
+  const doorCount = existing?.doorCount || S.doorCount;
+  S.doorCount = doorCount;
+
+  S.assessment = existing || buildBlankAssessment(jobId, doorCount);
+  S.assessment.jobId = jobId;
+  S.pendingSave = false;
+
+  hideLoading();
+  renderAssessment();
+  showPage('assess');
+}
+
+function buildBlankAssessment(jobId, doorCount) {
+  const doors = [];
+  for (let i = 0; i < doorCount; i++) {
+    doors.push({ width:'', height:'', headroom:'', backroom:'', sideleft:'', sideright:'', trackSolution:'', trackOverride:'' });
+  }
+  const conditions = {};
+  SITE_CONDITIONS.forEach(c => { conditions[c.id] = false; });
+  const photos = {};
+  PHOTO_ITEMS.forEach(p => { photos[p.id] = false; });
+  return { jobId, doorCount, doors, conditions, photos, notes:'', _savedAt: null };
+}
+
+function goHome() {
+  if (S.pendingSave) {
+    if (!confirm('You have unsaved changes. Leave anyway? (Data is preserved locally and can be saved when online.)')) return;
+  }
+  showPage('home');
+}
+
+// ═══ RENDER ═════════════════════════════════════════════════════
+function renderAssessment() {
+  const a = S.assessment;
+  document.getElementById('nav-job-id').textContent = a.jobId || '';
+  document.getElementById('nav-customer').textContent = a.jobId || '';
+
+  // Door sections
+  const container = document.getElementById('door-sections');
+  container.innerHTML = '';
+  a.doors.forEach((door, idx) => {
+    container.appendChild(buildDoorSection(door, idx));
+  });
+
+  // Site conditions
+  renderCheckGrid('site-cond-grid', SITE_CONDITIONS, a.conditions, 'conditions');
+
+  // Photo checklist
+  renderPhotoGrid('photo-grid', PHOTO_ITEMS, a.photos, 'photos');
+
+  // Notes
+  document.getElementById('field-notes').value = a.notes || '';
+
+  updateCompleteness();
+}
+
+function buildDoorSection(door, idx) {
+  const sec = document.createElement('div');
+  sec.className = 'sa-section';
+  sec.id = `door-sec-${idx}`;
+
+  const doorNum = idx + 1;
+  const fields = [
+    { key: 'width',     label: 'Width',       placeholder: '16\'0"',  unit: 'ft – in' },
+    { key: 'height',    label: 'Height',      placeholder: '7\'0"',   unit: 'ft – in' },
+    { key: 'headroom',  label: 'Headroom',    placeholder: '12"',     unit: 'inches' },
+    { key: 'backroom',  label: 'Backroom',    placeholder: '18\'0"',  unit: 'ft – in' },
+    { key: 'sideleft',  label: 'Side — Left', placeholder: '3.5"',   unit: 'inches' },
+    { key: 'sideright', label: 'Side — Right',placeholder: '3.5"',   unit: 'inches' },
+  ];
+
+  const allFilled = fields.every(f => door[f.key] && door[f.key].trim());
+  const dotClass = allFilled ? 'ok' : (fields.some(f => door[f.key] && door[f.key].trim()) ? 'missing' : 'missing');
+
+  sec.innerHTML = `
+    <div class="sa-section-hdr">
+      <span class="sa-section-title">Door ${doorNum} — Measurements</span>
+      <span class="sa-section-status ${allFilled ? 'ok' : 'missing'}" id="door-status-${idx}">
+        ${allFilled ? '✓ Complete' : 'Required'}
+      </span>
+    </div>
+    <div class="door-card">
+      <div class="door-card-title">
+        <span class="door-complete-dot ${allFilled ? 'ok' : 'missing'}" id="door-dot-${idx}"></span>
+        Rough Opening &amp; Space
+      </div>
+      <div class="meas-grid">
+        ${fields.map(f => `
+          <div class="meas-field">
+            <div class="meas-label">${f.label}</div>
+            <input class="meas-input ${(!door[f.key] || !door[f.key].trim()) ? 'required-empty' : ''}"
+              id="meas-${idx}-${f.key}"
+              type="text"
+              inputmode="decimal"
+              placeholder="${f.placeholder}"
+              value="${escHtml(door[f.key] || '')}"
+              oninput="onMeasInput(${idx}, '${f.key}', this.value)">
+            <div class="meas-unit">${f.unit}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="track-row">
+        <div class="track-label">Track Solution</div>
+        <select class="track-select" id="track-select-${idx}" onchange="onTrackOverride(${idx}, this.value)">
+          ${buildTrackOptions(door, idx)}
+        </select>
+        <span class="track-badge ${getTrackBadgeType(door, idx)}" id="track-badge-${idx}">
+          ${getTrackBadgeLabel(door, idx)}
+        </span>
+      </div>
+      <div id="track-auto-note-${idx}" class="track-auto-note" style="display:${door.headroom && !door.trackOverride ? 'block':'none'}">
+        ↑ Auto-suggested from headroom
+      </div>
+    </div>
+  `;
+  return sec;
+}
+
+function buildTrackOptions(door, idx) {
+  const auto = headroomToInches(door.headroom);
+  const autoSuggestion = trackFromHeadroom(auto);
+  const options = [
+    { value: '', label: door.headroom ? `Auto: ${autoSuggestion.label}` : '— Select or enter headroom for auto —' },
+    { value: 'standard', label: 'Standard Radius (10"+ headroom)' },
+    { value: 'low', label: 'Low-Clearance Radius (6.25"–9.75")' },
+    { value: 'ext', label: 'Ext. Low-Clearance / Hi-Lift (4.75"–6.25")' },
+    { value: 'vertical', label: 'Vertical Lift (no standard track)' },
+    { value: 'flag', label: 'Flag this job — non-standard' },
+  ];
+  const current = door.trackOverride || '';
+  return options.map(o => `<option value="${o.value}" ${current === o.value ? 'selected' : ''}>${o.label}</option>`).join('');
+}
+
+function headroomToInches(val) {
+  if (!val) return null;
+  const s = val.toString().trim();
+  // Accept: 12, 12.5, 12", 12 1/2, 1'2" etc.
+  // Try decimal first
+  const dec = parseFloat(s.replace('"','').replace("'",""));
+  if (!isNaN(dec) && dec < 30) return dec;
+  // Try feet'inches"
+  const ft = s.match(/(\d+)'?\s*(\d+(?:\.\d+)?)"?/);
+  if (ft) return parseFloat(ft[1])*12 + parseFloat(ft[2]);
+  return parseFloat(s) || null;
+}
+
+function getTrackBadgeType(door, idx) {
+  if (door.trackOverride) {
+    return door.trackOverride === 'standard' ? 'standard' : door.trackOverride === 'low' ? 'low' : 'ext';
+  }
+  const inches = headroomToInches(door.headroom);
+  return trackFromHeadroom(inches).type;
+}
+
+function getTrackBadgeLabel(door, idx) {
+  if (door.trackOverride) {
+    return { standard:'STD', low:'LOW', ext:'EXT', vertical:'VERT', flag:'FLAG', '':'—' }[door.trackOverride] || door.trackOverride.toUpperCase();
+  }
+  const t = trackFromHeadroom(headroomToInches(door.headroom));
+  return { standard:'STD', low:'LOW', ext:'EXT', na:'—' }[t.type] || t.type.toUpperCase();
+}
+
+function onMeasInput(idx, key, value) {
+  S.assessment.doors[idx][key] = value;
+  onDataChange();
+
+  // Update required-empty highlight in real time
+  const inp = document.getElementById(`meas-${idx}-${key}`);
+  inp.classList.toggle('required-empty', !value.trim());
+
+  // Auto-update track suggestion when headroom changes
+  if (key === 'headroom') {
+    updateTrackSuggestion(idx);
+  }
+
+  updateDoorStatus(idx);
+  updateCompleteness();
+}
+
+function onTrackOverride(idx, val) {
+  S.assessment.doors[idx].trackOverride = val;
+  onDataChange();
+  const inches = headroomToInches(S.assessment.doors[idx].headroom);
+  const auto = trackFromHeadroom(inches);
+  const badge = document.getElementById(`track-badge-${idx}`);
+  if (badge) {
+    badge.className = `track-badge ${val ? (val==='standard'?'standard':val==='low'?'low':'ext') : auto.type}`;
+    badge.textContent = val
+      ? { standard:'STD', low:'LOW', ext:'EXT', vertical:'VERT', flag:'FLAG' }[val] || val.toUpperCase()
+      : { standard:'STD', low:'LOW', ext:'EXT', na:'—' }[auto.type] || auto.type.toUpperCase();
+  }
+  const note = document.getElementById(`track-auto-note-${idx}`);
+  if (note) note.style.display = (!val && S.assessment.doors[idx].headroom) ? 'block' : 'none';
+}
+
+function updateTrackSuggestion(idx) {
+  const door = S.assessment.doors[idx];
+  const sel = document.getElementById(`track-select-${idx}`);
+  if (!sel) return;
+  // Rebuild the auto option label
+  const inches = headroomToInches(door.headroom);
+  const auto = trackFromHeadroom(inches);
+  sel.options[0].text = door.headroom ? `Auto: ${auto.label}` : '— Select or enter headroom for auto —';
+  const badge = document.getElementById(`track-badge-${idx}`);
+  if (badge && !door.trackOverride) {
+    badge.className = `track-badge ${auto.type}`;
+    badge.textContent = { standard:'STD', low:'LOW', ext:'EXT', na:'—' }[auto.type] || '—';
+  }
+  const note = document.getElementById(`track-auto-note-${idx}`);
+  if (note) note.style.display = (door.headroom && !door.trackOverride) ? 'block' : 'none';
+}
+
+function updateDoorStatus(idx) {
+  const door = S.assessment.doors[idx];
+  const fields = ['width','height','headroom','backroom','sideleft','sideright'];
+  const allFilled = fields.every(f => door[f] && door[f].trim());
+  const status = document.getElementById(`door-status-${idx}`);
+  const dot = document.getElementById(`door-dot-${idx}`);
+  if (status) { status.textContent = allFilled ? '✓ Complete' : 'Required'; status.className = `sa-section-status ${allFilled?'ok':'missing'}`; }
+  if (dot) { dot.className = `door-complete-dot ${allFilled?'ok':'missing'}`; }
+}
+
+function renderCheckGrid(containerId, items, state, stateKey) {
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = '';
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'check-item';
+    el.innerHTML = `
+      <div class="check-box ${state[item.id] ? 'checked' : ''}" id="cb-${item.id}" onclick="toggleCheck('${stateKey}','${item.id}')">
+        <span class="check-box-mark">✓</span>
+      </div>
+      <div class="check-text">${item.label}${item.sub ? `<br><span class="check-sub">${item.sub}</span>` : ''}</div>
+    `;
+    grid.appendChild(el);
+  });
+}
+
+function renderPhotoGrid(containerId, items, state, stateKey) {
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = '';
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'photo-item';
+    el.innerHTML = `
+      <div class="check-box ${state[item.id] ? 'checked' : ''}" id="cb-${item.id}" onclick="toggleCheck('${stateKey}','${item.id}')">
+        <span class="check-box-mark">✓</span>
+      </div>
+      <div class="check-text">${item.label}</div>
+    `;
+    grid.appendChild(el);
+  });
+  updatePhotoStatus();
+}
+
+function toggleCheck(stateKey, itemId) {
+  S.assessment[stateKey][itemId] = !S.assessment[stateKey][itemId];
+  const box = document.getElementById(`cb-${itemId}`);
+  if (box) box.classList.toggle('checked', S.assessment[stateKey][itemId]);
+  onDataChange();
+  if (stateKey === 'photos') updatePhotoStatus();
+}
+
+function updatePhotoStatus() {
+  const photos = S.assessment.photos;
+  const taken = Object.values(photos).filter(Boolean).length;
+  const total = PHOTO_ITEMS.length;
+  const st = document.getElementById('photo-status');
+  if (st) {
+    st.textContent = `${taken} / ${total}`;
+    st.className = `sa-section-status ${taken === total ? 'ok' : ''}`;
+  }
+}
+
+// ═══ COMPLETENESS ENGINE ═════════════════════════════════════════
+// The primary forcing function — shows exactly what's missing.
+function getMissingFields() {
+  const missing = [];
+  const a = S.assessment;
+  const fields = ['width','height','headroom','backroom','sideleft','sideright'];
+  const labels = { width:'Width', height:'Height', headroom:'Headroom', backroom:'Backroom', sideleft:'Side-L', sideright:'Side-R' };
+
+  a.doors.forEach((door, idx) => {
+    fields.forEach(f => {
+      if (!door[f] || !door[f].trim()) {
+        missing.push(`Door ${idx+1}: ${labels[f]}`);
+      }
+    });
+  });
+  return missing;
+}
+
+function updateCompleteness() {
+  const missing = getMissingFields();
+  const totalRequired = S.assessment.doors.length * 6;
+  const filled = totalRequired - missing.length;
+  const pct = totalRequired > 0 ? Math.round((filled / totalRequired) * 100) : 100;
+  const complete = missing.length === 0;
+
+  const bar = document.getElementById('completeness-bar');
+  const label = document.getElementById('comp-label');
+  const detail = document.getElementById('comp-detail');
+  const pctEl = document.getElementById('comp-pct');
+  const arc = document.getElementById('comp-arc');
+
+  bar.className = complete ? 'complete' : 'incomplete';
+  label.className = `completeness-label ${complete ? 'complete' : 'incomplete'}`;
+  label.textContent = complete ? '✓ All Measurements Complete' : 'Measurements Incomplete';
+
+  if (complete) {
+    detail.className = 'completeness-ok';
+    detail.textContent = 'All required fields filled. Safe to leave the site.';
+  } else {
+    detail.className = 'completeness-missing';
+    const shown = missing.slice(0, 4);
+    const extra = missing.length - shown.length;
+    detail.textContent = 'Missing: ' + shown.join(', ') + (extra > 0 ? ` +${extra} more` : '');
+  }
+
+  pctEl.textContent = pct + '%';
+
+  // Arc SVG (circumference = 2π×12 ≈ 75.4)
+  const circ = 75.4;
+  const offset = circ - (pct / 100) * circ;
+  arc.setAttribute('stroke-dashoffset', offset.toFixed(1));
+  arc.setAttribute('stroke', complete ? '#1A6B3A' : pct >= 50 ? '#B07A00' : '#8B1E1E');
+}
+
+// ═══ DATA CHANGE & SAVE ══════════════════════════════════════════
+function onDataChange() {
+  // Also capture notes field value
+  const notesEl = document.getElementById('field-notes');
+  if (notesEl) S.assessment.notes = notesEl.value;
+
+  saveLocal();
+  S.pendingSave = true;
+  setSaveStatus('unsaved', 'Unsaved');
+
+  // Debounce auto-save (2s after last change)
+  clearTimeout(S._autoSaveTimer);
+  S._autoSaveTimer = setTimeout(() => { saveAssessment(true); }, 2000);
+}
+
+function setSaveStatus(cls, text) {
+  const el = document.getElementById('save-status');
+  el.className = cls;
+  el.textContent = text;
+  el.style.display = 'inline-block';
+}
+
+async function saveAssessment(auto) {
+  if (!S.assessment || !S.jobId) return;
+
+  // Capture notes field
+  const notesEl = document.getElementById('field-notes');
+  if (notesEl) S.assessment.notes = notesEl.value;
+
+  setSaveStatus('saving', 'Saving…');
+  document.getElementById('retry-banner').classList.remove('visible');
+
+  S.assessment._savedAt = Date.now();
+
+  try {
+    await graphPut(drivePath(S.jobId, 'site_assessment.json'), S.assessment);
+    saveLocal(); // keep local in sync
+    S.pendingSave = false;
+    setSaveStatus('saved', '✓ Saved');
+    setTimeout(() => {
+      const el = document.getElementById('save-status');
+      if (el.classList.contains('saved')) el.style.display = 'none';
+    }, 3000);
+  } catch(e) {
+    saveLocal(); // data safe locally
+    S.pendingSave = true;
+    setSaveStatus('error', '⚠ Save failed');
+    if (!auto) {
+      document.getElementById('retry-banner').classList.add('visible');
+    }
+    showOfflineToast();
+  }
+}
+
+function retrySave() {
+  document.getElementById('retry-banner').classList.remove('visible');
+  saveAssessment(false);
+}
+
+function showOfflineToast() {
+  const t = document.getElementById('offline-toast');
+  t.classList.add('visible');
+  setTimeout(() => t.classList.remove('visible'), 4000);
+}
+
+// Also listen for online event to auto-retry
+window.addEventListener('online', () => {
+  if (S.pendingSave && S.jobId) {
+    saveAssessment(true);
+  }
+});
+
+// ═══ UI HELPERS ══════════════════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const map = { home: 'page-home', assess: 'page-assess' };
+  document.getElementById(map[name]).classList.add('active');
+}
+function showLoading(msg) {
+  document.getElementById('loading-text').textContent = msg || 'Loading…';
+  document.getElementById('loading-overlay').classList.add('active');
+}
+function hideLoading() { document.getElementById('loading-overlay').classList.remove('active'); }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
