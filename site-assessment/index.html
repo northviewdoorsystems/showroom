@@ -51,7 +51,8 @@
     /* ═══ HOME PAGE ═══ */
     #page-home { background: var(--white); align-items: center; justify-content: center; padding: 24px; }
     .home-inner { border: 3px solid var(--navy); padding: 44px 40px 36px; width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; }
-    .home-wordmark { font-family: var(--serif); font-weight: 700; font-size: 20px; color: var(--navy); text-align: center; margin-bottom: 4px; letter-spacing: 0.02em; }
+    .home-logo { width: 100%; height: auto; display: block; margin-bottom: 10px; }
+    .home-logo-fallback { display: none; font-family: var(--serif); font-weight: 700; font-size: 20px; color: var(--navy); text-align: center; margin-bottom: 4px; }
     .home-sub { font-size: 9px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--red); text-align: center; margin-bottom: 32px; }
     .home-field-label { font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; display: block; width: 100%; }
     .home-select { width: 100%; font-family: var(--sans); font-size: 14px; font-weight: 600; padding: 13px 36px 13px 14px; border-radius: 0; appearance: none; -webkit-appearance: none; cursor: pointer; outline: none; display: block; color: var(--navy); border: 1px solid var(--border); background: var(--tan); background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23152848' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; margin-bottom: 10px; }
@@ -184,7 +185,8 @@
 <!-- ═══ HOME PAGE ═══ -->
 <div class="page active" id="page-home">
   <div class="home-inner">
-    <div class="home-wordmark">Northview Doors &amp; Systems</div>
+    <img class="home-logo" src="../northview-logo_2000w.png" alt="Northview Doors &amp; Systems" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <div class="home-logo-fallback">Northview Doors &amp; Systems</div>
     <div class="home-sub">Site Assessment</div>
 
     <div id="home-auth-area">
@@ -295,7 +297,7 @@
 <script>
 // ═══ CONFIG (clone from ShowRoom — only scope changes) ═══════════
 const CLIENT_ID     = '1ad6edd0-985a-4202-81d2-a24d737936f9';
-const REDIRECT_URI  = 'https://northviewdoorsystems.github.io/site-assessment/';
+const REDIRECT_URI  = 'https://northviewdoorsystems.github.io/showroom/site-assessment/';
 const BASE_SEGMENTS = ['Documents','For-Profit Ventures','Northview Doors& Systems','Reference','Northview-Showroom'];
 const SCOPES        = ['Files.ReadWrite'];  // upgraded from Files.Read
 
