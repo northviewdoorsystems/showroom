@@ -25,6 +25,8 @@
     @keyframes spin-sm { to { transform: rotate(360deg); } }
     .spin-sm { animation: spin-sm 0.8s linear infinite; display: inline-block; }
     .loading-text { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.65); letter-spacing: 0.1em; text-transform: uppercase; }
+
+    /* Nav */
     .nav-bar { background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; min-height: 54px; flex-shrink: 0; gap: 10px; }
     .nav-logo-text { font-family: var(--serif); font-weight: 700; font-size: 13px; color: var(--navy); }
     .nav-divider { width: 1px; height: 24px; background: var(--border); }
@@ -39,6 +41,8 @@
     #save-status.saving  { display: inline-block; background: #e8f0fe; color: var(--navy);  border: 1px solid #c5d3f0; }
     #save-status.saved   { display: inline-block; background: #e9f6ee; color: var(--green); border: 1px solid #a8d8b9; }
     #save-status.error   { display: inline-block; background: var(--danger-bg); color: var(--red); border: 1px solid var(--danger-border); }
+
+    /* Home */
     #page-home { background: var(--white); align-items: center; justify-content: center; padding: 24px; }
     .home-inner { border: 3px solid var(--navy); padding: 44px 40px 36px; width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; }
     .home-logo { width: 100%; height: auto; display: block; margin-bottom: 10px; }
@@ -57,8 +61,12 @@
     .door-count-row { display: flex; gap: 6px; width: 100%; margin-bottom: 10px; }
     .door-count-btn { flex: 1; background: var(--tan); border: 1.5px solid var(--border); font-family: var(--sans); font-size: 13px; font-weight: 700; color: var(--muted); padding: 11px; cursor: pointer; transition: all 0.15s; text-align: center; }
     .door-count-btn.active { background: var(--navy); border-color: var(--navy); color: white; }
+
+    /* Assessment layout */
     #page-assess { background: var(--tan); }
     .assess-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; -webkit-overflow-scrolling: touch; }
+
+    /* Completeness bar */
     #completeness-bar { background: var(--white); border: 2px solid var(--border); padding: 14px 16px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; position: sticky; top: 0; z-index: 10; }
     #completeness-bar.complete { border-color: var(--green); background: #e9f6ee; }
     #completeness-bar.incomplete { border-color: var(--red); background: var(--danger-bg); }
@@ -69,12 +77,16 @@
     .completeness-missing { font-size: 11px; color: var(--red); margin-top: 2px; }
     .completeness-ok { font-size: 11px; color: var(--green); margin-top: 2px; }
     .completeness-right { margin-left: auto; font-size: 20px; font-weight: 700; font-family: var(--serif); color: var(--navy); }
+
+    /* Sections */
     .sa-section { background: var(--white); border: 1px solid var(--border); }
     .sa-section-hdr { background: var(--tan); border-bottom: 1px solid var(--border); padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; }
     .sa-section-title { font-size: 9px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--navy); }
     .sa-section-status { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
     .sa-section-status.ok { color: var(--green); }
     .sa-section-status.missing { color: var(--red); }
+
+    /* Door measurement cards */
     .door-card { border-bottom: 1px solid var(--border); padding: 12px 15px; }
     .door-card:last-child { border-bottom: none; }
     .door-card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
@@ -89,6 +101,16 @@
     .meas-input.required-empty { border-color: #e8a0a0; background: #fff8f8; }
     .meas-input::placeholder { color: var(--border); font-weight: 400; font-size: 13px; }
     .meas-unit { font-size: 9px; color: var(--muted); text-align: right; margin-top: 2px; }
+
+    /* Slope measurements */
+    .slope-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 8px; }
+    .slope-uneven-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--border); margin-top: 2px; }
+    .slope-uneven-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); flex: 1; }
+    .slope-uneven-input { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--navy); background: var(--tan); border: 1.5px solid var(--border); padding: 7px 10px; flex: 2; outline: none; border-radius: 0; -webkit-appearance: none; transition: border-color 0.15s; }
+    .slope-uneven-input:focus { border-color: var(--navy); background: white; }
+    .slope-uneven-input::placeholder { color: var(--border); font-weight: 400; }
+
+    /* Track solution */
     .track-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--border); margin-top: 4px; }
     .track-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
     .track-select { flex: 1; font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--navy); background: var(--tan) url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237A786E' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center; border: 1.5px solid var(--border); padding: 8px 28px 8px 10px; outline: none; border-radius: 0; appearance: none; -webkit-appearance: none; min-height: 38px; }
@@ -98,16 +120,45 @@
     .track-badge.ext { background: var(--danger-bg); color: var(--red); border: 1px solid var(--danger-border); }
     .track-badge.na { background: var(--tan); color: var(--muted); border: 1px solid var(--border); }
     .track-auto-note { font-size: 10px; color: var(--green); font-style: italic; margin-top: 4px; }
-    .check-grid { padding: 10px 15px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-    .check-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); cursor: pointer; }
-    .check-item:nth-child(-n+2) { border-top: none; }
-    .check-box { width: 20px; height: 20px; border: 2px solid var(--border); background: var(--tan); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; cursor: pointer; }
-    .check-box.checked { background: var(--navy); border-color: var(--navy); }
-    .check-box-mark { color: white; font-size: 12px; line-height: 1; display: none; }
-    .check-box.checked .check-box-mark { display: block; }
-    .check-text { font-size: 12px; font-weight: 600; color: var(--body); line-height: 1.3; }
-    .check-sub { font-size: 10px; color: var(--muted); font-weight: 400; }
-    /* Photo rows */
+
+    /* ── Site Conditions — new design ── */
+    .sc-body { padding: 12px 15px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* Ceiling type tap-to-select row */
+    .sc-row { display: flex; align-items: center; gap: 10px; }
+    .sc-row-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); width: 90px; flex-shrink: 0; }
+    .sc-btn-group { display: flex; gap: 5px; flex: 1; }
+    .sc-btn { flex: 1; background: var(--tan); border: 1.5px solid var(--border); font-family: var(--sans); font-size: 11px; font-weight: 700; color: var(--muted); padding: 9px 6px; cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.2; }
+    .sc-btn.active { background: var(--navy); border-color: var(--navy); color: white; }
+    .sc-btn.active-warn { background: var(--amber); border-color: var(--amber); color: white; }
+
+    /* Expand-on-tap items (Jamb/Header Issues, Unique Site Access) */
+    .sc-expand-item { border: 1.5px solid var(--border); }
+    .sc-expand-trigger { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; background: var(--tan); user-select: none; -webkit-user-select: none; }
+    .sc-expand-check { width: 20px; height: 20px; border: 2px solid var(--border); background: var(--white); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .sc-expand-check.checked { background: var(--navy); border-color: var(--navy); }
+    .sc-expand-check-mark { color: white; font-size: 12px; line-height: 1; display: none; }
+    .sc-expand-check.checked .sc-expand-check-mark { display: block; }
+    .sc-expand-label { font-size: 13px; font-weight: 600; color: var(--body); flex: 1; }
+    .sc-expand-caret { font-size: 10px; color: var(--muted); transition: transform 0.2s; }
+    .sc-expand-caret.open { transform: rotate(180deg); }
+    .sc-expand-body { display: none; padding: 10px 12px; border-top: 1px solid var(--border); background: var(--white); }
+    .sc-expand-body.open { display: block; }
+    .sc-expand-textarea { font-family: var(--sans); font-size: 13px; color: var(--body); background: var(--tan); border: 1.5px solid var(--border); padding: 9px 10px; width: 100%; outline: none; border-radius: 0; resize: none; height: 80px; line-height: 1.5; font-weight: 400; transition: border-color 0.15s; }
+    .sc-expand-textarea:focus { border-color: var(--navy); background: white; }
+    .sc-expand-textarea::placeholder { color: var(--border); }
+    .sc-drywall-note { font-size: 11px; color: var(--amber); background: #fff8e1; border: 1px solid #f0d870; padding: 7px 10px; margin-bottom: 8px; display: none; }
+    .sc-drywall-note.visible { display: block; }
+
+    /* Outlet checkbox (standalone, single) */
+    .sc-check-row { display: flex; align-items: center; gap: 10px; padding: 2px 0; cursor: pointer; }
+    .sc-check-box { width: 20px; height: 20px; border: 2px solid var(--border); background: var(--tan); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .sc-check-box.checked { background: var(--navy); border-color: var(--navy); }
+    .sc-check-mark { color: white; font-size: 12px; line-height: 1; display: none; }
+    .sc-check-box.checked .sc-check-mark { display: block; }
+    .sc-check-label { font-size: 13px; font-weight: 600; color: var(--body); }
+
+    /* Photos */
     .photo-list { display: flex; flex-direction: column; }
     .photo-row { display: flex; align-items: center; border-top: 1px solid var(--border); min-height: 52px; }
     .photo-row:first-child { border-top: none; }
@@ -124,10 +175,14 @@
     .photo-cam-btn:hover { background: var(--tan); }
     .photo-cam-btn.uploading { color: var(--muted); pointer-events: none; }
     .photo-file-input { display: none; }
+
+    /* Notes */
     .notes-pad { padding: 12px 15px; }
     .notes-pad textarea { font-family: var(--sans); font-size: 13px; color: var(--body); background: var(--tan); border: 1.5px solid var(--border); padding: 10px 12px; width: 100%; outline: none; border-radius: 0; resize: none; height: 120px; line-height: 1.6; font-weight: 400; transition: border-color 0.15s; }
     .notes-pad textarea:focus { border-color: var(--navy); background: white; }
     .notes-pad textarea::placeholder { color: var(--border); }
+
+    /* Toast / retry */
     #offline-toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--red); color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 18px; white-space: nowrap; display: none; z-index: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
     #offline-toast.visible { display: block; }
     #retry-banner { display: none; background: #fff8e1; border: 1px solid #f0d870; padding: 10px 14px; font-size: 11px; color: var(--amber); font-weight: 600; flex-shrink: 0; align-items: center; gap: 10px; }
@@ -212,13 +267,62 @@
       </div>
       <div class="completeness-right" id="comp-pct">0%</div>
     </div>
+
+    <!-- Door sections injected by JS -->
     <div id="door-sections"></div>
+
+    <!-- Site Conditions -->
     <div class="sa-section">
       <div class="sa-section-hdr">
         <span class="sa-section-title">Site Conditions</span>
       </div>
-      <div class="check-grid" id="site-cond-grid"></div>
+      <div class="sc-body">
+
+        <!-- Ceiling Type + Jamb/Header Issues side by side -->
+        <div class="sc-row">
+          <div class="sc-row-label">Ceiling Type</div>
+          <div class="sc-btn-group">
+            <button class="sc-btn" id="ceil-joists" onclick="setCeiling('joists')">Open Joists</button>
+            <button class="sc-btn" id="ceil-drywall" onclick="setCeiling('drywall')">Drywall</button>
+            <button class="sc-btn" id="ceil-other"  onclick="setCeiling('other')">Other</button>
+          </div>
+        </div>
+
+        <!-- Jamb / Header Issues expand -->
+        <div class="sc-expand-item" id="jamb-expand-item">
+          <div class="sc-expand-trigger" onclick="toggleExpand('jamb')">
+            <div class="sc-expand-check" id="jamb-check"><span class="sc-expand-check-mark">&#10003;</span></div>
+            <div class="sc-expand-label">Jamb / Header Issues</div>
+            <div class="sc-expand-caret" id="jamb-caret">&#9660;</div>
+          </div>
+          <div class="sc-expand-body" id="jamb-body">
+            <div class="sc-drywall-note" id="jamb-drywall-note">Ceiling is drywalled — header condition may be obscured. Verify what's accessible.</div>
+            <textarea class="sc-expand-textarea" id="jamb-notes" placeholder="Describe jamb or header issues — material, condition, repair needed…" oninput="onExpandInput('jamb', this.value)"></textarea>
+          </div>
+        </div>
+
+        <!-- Outlet confirmed -->
+        <div class="sc-check-row" onclick="toggleOutlet()">
+          <div class="sc-check-box" id="outlet-check"><span class="sc-check-mark">&#10003;</span></div>
+          <div class="sc-check-label">Outlet confirmed within reach of opener</div>
+        </div>
+
+        <!-- Unique Site Access expand -->
+        <div class="sc-expand-item">
+          <div class="sc-expand-trigger" onclick="toggleExpand('access')">
+            <div class="sc-expand-check" id="access-check"><span class="sc-expand-check-mark">&#10003;</span></div>
+            <div class="sc-expand-label">Unique Site Access</div>
+            <div class="sc-expand-caret" id="access-caret">&#9660;</div>
+          </div>
+          <div class="sc-expand-body" id="access-body">
+            <textarea class="sc-expand-textarea" id="access-notes" placeholder="Describe access constraints — tight driveway, low clearance, steep slope, narrow gate…" oninput="onExpandInput('access', this.value)"></textarea>
+          </div>
+        </div>
+
+      </div>
     </div>
+
+    <!-- Photos -->
     <div class="sa-section">
       <div class="sa-section-hdr">
         <span class="sa-section-title">Site Photos</span>
@@ -226,14 +330,17 @@
       </div>
       <div class="photo-list" id="photo-list"></div>
     </div>
+
+    <!-- Field Notes -->
     <div class="sa-section">
       <div class="sa-section-hdr">
         <span class="sa-section-title">Field Notes</span>
       </div>
       <div class="notes-pad">
-        <textarea id="field-notes" placeholder="Anything unusual — low ceiling, beam, header condition, masonry, electrical location, customer concerns…" oninput="onDataChange()"></textarea>
+        <textarea id="field-notes" placeholder="Anything else — unusual dimensions, customer concerns, follow-up items…" oninput="onDataChange()"></textarea>
       </div>
     </div>
+
     <div style="height:40px;flex-shrink:0"></div>
   </div>
 </div>
@@ -251,12 +358,13 @@ try {
     cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: true }
   });
 } catch(e) {
-  document.addEventListener('DOMContentLoaded', () => {
-    const el = document.getElementById('home-error');
+  document.addEventListener('DOMContentLoaded', function() {
+    var el = document.getElementById('home-error');
     if (el) { el.textContent = 'Init error: ' + e.message; el.style.display = 'block'; }
   });
 }
 
+// ── Track solution lookup ────────────────────────────────────────
 function trackFromHeadroom(inches) {
   if (inches === null || isNaN(inches)) return { label: '—', type: 'na' };
   if (inches >= 10)   return { label: 'Standard Radius',                     type: 'standard' };
@@ -265,33 +373,20 @@ function trackFromHeadroom(inches) {
   return                     { label: 'Not Feasible (<4.75")',                type: 'ext' };
 }
 
-const SITE_CONDITIONS = [
-  { id:'jamb_wood',     label:'Wood Jamb',             sub:'Standard install' },
-  { id:'jamb_steel',    label:'Steel Jamb',            sub:'May need adapters' },
-  { id:'jamb_masonry',  label:'Masonry / Brick',       sub:'Surcharge applies' },
-  { id:'header_good',   label:'Header — Good',         sub:'No repair needed' },
-  { id:'header_repair', label:'Header — Needs Repair', sub:'Flag for scope' },
-  { id:'floor_level',   label:'Floor Level',           sub:'' },
-  { id:'floor_uneven',  label:'Floor Uneven',          sub:'Shim / threshold work' },
-  { id:'outlet_ok',     label:'Outlet in Reach',       sub:'Opener-ready' },
-  { id:'outlet_needed', label:'No Outlet',             sub:'Electrical required' },
-  { id:'ceiling_clear', label:'Ceiling Clear',         sub:'No obstructions' },
-  { id:'beam_post',     label:'Beam / Post',           sub:'May affect spring placement' },
-  { id:'painted_over',  label:'Old Door Painted Over', sub:'Removal may be harder' },
+// ── Photo items ──────────────────────────────────────────────────
+var PHOTO_ITEMS = [
+  { id:'photo_exterior', label:'Full opening — exterior',      filename:'photo_exterior.jpg' },
+  { id:'photo_interior', label:'Full opening — interior',      filename:'photo_interior.jpg' },
+  { id:'photo_headroom', label:'Headroom & ceiling',           filename:'photo_headroom.jpg' },
+  { id:'photo_spring',   label:'Spring system',                filename:'photo_spring.jpg' },
+  { id:'photo_jamb',     label:'Jamb & header',                filename:'photo_jamb.jpg' },
+  { id:'photo_opener',   label:'Existing opener (if any)',      filename:'photo_opener.jpg' },
+  { id:'photo_floor',    label:'Floor / threshold',             filename:'photo_floor.jpg' },
+  { id:'photo_issues',   label:'Obstructions or issues',        filename:'photo_issues.jpg' },
 ];
 
-const PHOTO_ITEMS = [
-  { id:'photo_exterior', label:'Exterior — straight-on from driveway', filename:'photo_exterior.jpg' },
-  { id:'photo_interior', label:'Interior — full view (headroom + side)', filename:'photo_interior.jpg' },
-  { id:'photo_track',    label:'Existing track & hardware',             filename:'photo_track.jpg' },
-  { id:'photo_header',   label:'Header close-up',                       filename:'photo_header.jpg' },
-  { id:'photo_jamb_l',   label:'Left jamb',                             filename:'photo_jamb_l.jpg' },
-  { id:'photo_jamb_r',   label:'Right jamb',                            filename:'photo_jamb_r.jpg' },
-  { id:'photo_floor',    label:'Floor / threshold',                     filename:'photo_floor.jpg' },
-  { id:'photo_opener',   label:'Existing opener (if any)',               filename:'photo_opener.jpg' },
-];
-
-let S = {
+// ── State ────────────────────────────────────────────────────────
+var S = {
   jobId: null, doorCount: 1, assessment: null,
   pendingSave: false, _autoSaveTimer: null,
   photoStatus: {}, photoQueue: [], photoUploading: false,
@@ -299,33 +394,35 @@ let S = {
 
 function localKey() { return 'sa_draft_' + S.jobId; }
 function saveLocal() { try { localStorage.setItem(localKey(), JSON.stringify({ ts: Date.now(), data: S.assessment })); } catch(e) {} }
-function loadLocal() { try { const r = localStorage.getItem(localKey()); return r ? JSON.parse(r) : null; } catch(e) { return null; } }
+function loadLocal() { try { var r = localStorage.getItem(localKey()); return r ? JSON.parse(r) : null; } catch(e) { return null; } }
 
+// ── Auth ─────────────────────────────────────────────────────────
 async function getToken() {
-  const acct = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
+  var acct = msalInstance.getActiveAccount() || msalInstance.getAllAccounts()[0];
   if (!acct) throw new Error('Not signed in');
   try { return (await msalInstance.acquireTokenSilent({ scopes: SCOPES, account: acct })).accessToken; }
   catch(e) { if (e instanceof msal.InteractionRequiredAuthError) await msalInstance.acquireTokenRedirect({ scopes: SCOPES }); throw e; }
 }
 async function signIn() {
-  try { if (!msalInstance) throw new Error('MSAL did not initialize.'); await msalInstance.loginRedirect({ scopes: SCOPES }); }
-  catch(e) { const el = document.getElementById('home-error'); el.textContent = 'Sign-in error: ' + e.message; el.style.display = 'block'; }
+  try { await msalInstance.loginRedirect({ scopes: SCOPES }); }
+  catch(e) { var el = document.getElementById('home-error'); el.textContent = 'Sign-in error: ' + e.message; el.style.display = 'block'; }
 }
 async function signOut() { await msalInstance.logoutRedirect({ postLogoutRedirectUri: REDIRECT_URI }); }
 
+// ── Graph ────────────────────────────────────────────────────────
 function drivePath() {
-  const segs = Array.from(arguments);
-  return '/me/drive/root:/' + [...BASE_SEGMENTS, ...segs].map(encodeURIComponent).join('/');
+  var segs = Array.from(arguments);
+  return '/me/drive/root:/' + BASE_SEGMENTS.concat(segs).map(encodeURIComponent).join('/');
 }
 async function graphFetch(path) {
-  const token = await getToken();
-  const r = await fetch('https://graph.microsoft.com/v1.0' + path, { headers: { Authorization: 'Bearer ' + token } });
+  var token = await getToken();
+  var r = await fetch('https://graph.microsoft.com/v1.0' + path, { headers: { Authorization: 'Bearer ' + token } });
   if (!r.ok) { if (r.status === 404) return null; throw new Error('Graph ' + r.status); }
   return r.json();
 }
 async function graphPutJSON(path, body) {
-  const token = await getToken();
-  const r = await fetch('https://graph.microsoft.com/v1.0' + path + ':/content', {
+  var token = await getToken();
+  var r = await fetch('https://graph.microsoft.com/v1.0' + path + ':/content', {
     method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
@@ -333,8 +430,8 @@ async function graphPutJSON(path, body) {
   return r.json();
 }
 async function graphPutBinary(path, blob) {
-  const token = await getToken();
-  const r = await fetch('https://graph.microsoft.com/v1.0' + path + ':/content', {
+  var token = await getToken();
+  var r = await fetch('https://graph.microsoft.com/v1.0' + path + ':/content', {
     method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': blob.type || 'image/jpeg' },
     body: blob
   });
@@ -342,9 +439,10 @@ async function graphPutBinary(path, blob) {
   return r.json();
 }
 
-(async () => {
+// ── Init ─────────────────────────────────────────────────────────
+(async function() {
   try {
-    const resp = await msalInstance.handleRedirectPromise();
+    var resp = await msalInstance.handleRedirectPromise();
     if (resp) msalInstance.setActiveAccount(resp.account);
     if (msalInstance.getAllAccounts().length > 0) await loadJobs(msalInstance.getAllAccounts()[0]);
     else showPage('home');
@@ -354,14 +452,14 @@ async function graphPutBinary(path, blob) {
 async function loadJobs(account) {
   showLoading('Loading jobs…'); showPage('home');
   try {
-    const data = await graphFetch(drivePath() + ':/children?$select=name,folder&$orderby=name%20desc');
-    const jobs = (data && data.value || []).filter(function(i){ return i.folder && /^NV-/i.test(i.name); }).map(function(i){ return i.name; });
-    const sel = document.getElementById('job-select');
-    jobs.forEach(function(j){ const o = document.createElement('option'); o.value = o.textContent = j; sel.appendChild(o); });
+    var data = await graphFetch(drivePath() + ':/children?$select=name,folder&$orderby=name%20desc');
+    var jobs = (data && data.value || []).filter(function(i){ return i.folder && /^NV-/i.test(i.name); }).map(function(i){ return i.name; });
+    var sel = document.getElementById('job-select');
+    jobs.forEach(function(j){ var o = document.createElement('option'); o.value = o.textContent = j; sel.appendChild(o); });
     document.getElementById('home-user-name').textContent = account.name || account.username;
     document.getElementById('home-auth-area').style.display = 'none';
     document.getElementById('home-job-area').style.display = 'block';
-  } catch(e) { const el = document.getElementById('home-error'); el.textContent = e.message; el.style.display = 'block'; }
+  } catch(e) { var el = document.getElementById('home-error'); el.textContent = e.message; el.style.display = 'block'; }
   hideLoading();
 }
 
@@ -372,19 +470,19 @@ function setDoorCount(n) {
 }
 
 async function openJob() {
-  const jobId = document.getElementById('job-select').value;
+  var jobId = document.getElementById('job-select').value;
   if (!jobId) return;
   S.jobId = jobId; S.photoStatus = {}; S.photoQueue = [];
   showLoading('Loading assessment…');
-  let existing = null;
+  var existing = null;
   try {
-    const token = await getToken();
-    const cr = await fetch('https://graph.microsoft.com/v1.0' + drivePath(jobId, 'site_assessment.json') + ':/content', { headers: { Authorization: 'Bearer ' + token } });
+    var token = await getToken();
+    var cr = await fetch('https://graph.microsoft.com/v1.0' + drivePath(jobId, 'site_assessment.json') + ':/content', { headers: { Authorization: 'Bearer ' + token } });
     if (cr.ok) existing = await cr.json();
   } catch(e) {}
-  const local = loadLocal();
+  var local = loadLocal();
   if (local && (!existing || local.ts > (existing._savedAt || 0))) existing = local.data;
-  const doorCount = (existing && existing.doorCount) || S.doorCount;
+  var doorCount = (existing && existing.doorCount) || S.doorCount;
   S.doorCount = doorCount;
   S.assessment = existing || buildBlank(jobId, doorCount);
   S.assessment.jobId = jobId;
@@ -397,11 +495,17 @@ async function openJob() {
 }
 
 function buildBlank(jobId, doorCount) {
-  const doors = [];
-  for (let i = 0; i < doorCount; i++) doors.push({ width:'', height:'', headroom:'', backroom:'', sideleft:'', sideright:'', trackOverride:'' });
-  const conditions = {}; SITE_CONDITIONS.forEach(function(c){ conditions[c.id] = false; });
-  const photos = {}; PHOTO_ITEMS.forEach(function(p){ photos[p.id] = false; });
-  return { jobId: jobId, doorCount: doorCount, doors: doors, conditions: conditions, photos: photos, notes: '', _savedAt: null };
+  var doors = [];
+  for (var i = 0; i < doorCount; i++) {
+    doors.push({ width:'', height:'', headroom:'', backroom:'', sideleft:'', sideright:'', trackOverride:'',
+                 slope_ljamb:'', slope_lqtr:'', slope_ctr:'', slope_rqtr:'', slope_rjamb:'', slope_uneven:'' });
+  }
+  var photos = {}; PHOTO_ITEMS.forEach(function(p){ photos[p.id] = false; });
+  return {
+    jobId: jobId, doorCount: doorCount, doors: doors, photos: photos, notes: '',
+    ceilType: '', jambIssues: false, jambNotes: '', outletOk: false, accessIssues: false, accessNotes: '',
+    _savedAt: null
+  };
 }
 
 function goHome() {
@@ -411,39 +515,33 @@ function goHome() {
   showPage('home');
 }
 
-// ── Camera inputs ──────────────────────────────────────────────
+// ── Camera inputs ────────────────────────────────────────────────
 function buildCameraInputs() {
-  const container = document.getElementById('camera-inputs');
+  var container = document.getElementById('camera-inputs');
   container.innerHTML = '';
   PHOTO_ITEMS.forEach(function(item) {
-    const input = document.createElement('input');
+    var input = document.createElement('input');
     input.type = 'file'; input.accept = 'image/*'; input.capture = 'environment';
     input.className = 'photo-file-input'; input.id = 'cam-input-' + item.id;
     input.addEventListener('change', function(e) {
-      const file = e.target.files[0];
+      var file = e.target.files[0];
       if (file) onPhotoSelected(item.id, file);
       input.value = '';
     });
     container.appendChild(input);
   });
 }
+function triggerCamera(photoId) { var el = document.getElementById('cam-input-' + photoId); if (el) el.click(); }
 
-function triggerCamera(photoId) { const el = document.getElementById('cam-input-' + photoId); if (el) el.click(); }
-
-// ── Photo capture & upload ──────────────────────────────────────
+// ── Photo capture & upload ───────────────────────────────────────
 function onPhotoSelected(photoId, file) {
-  // Show thumbnail immediately — no waiting for upload
-  const thumb = document.getElementById('thumb-' + photoId);
-  const ph = document.getElementById('thumb-ph-' + photoId);
+  var thumb = document.getElementById('thumb-' + photoId);
+  var ph = document.getElementById('thumb-ph-' + photoId);
   if (thumb) { thumb.src = URL.createObjectURL(file); thumb.style.display = 'block'; }
   if (ph) ph.style.display = 'none';
-
-  // Mark taken in state and save JSON
   if (!S.assessment.photos) S.assessment.photos = {};
   S.assessment.photos[photoId] = true;
   onDataChange();
-
-  // Queue upload (replace any existing entry for same slot — retake)
   S.photoStatus[photoId] = 'pending';
   updatePhotoPill(photoId);
   S.photoQueue = S.photoQueue.filter(function(q){ return q.photoId !== photoId; });
@@ -451,13 +549,12 @@ function onPhotoSelected(photoId, file) {
   updatePhotoSectionStatus();
   drainPhotoQueue();
 }
-
 async function drainPhotoQueue() {
   if (S.photoUploading || S.photoQueue.length === 0) return;
   S.photoUploading = true;
   while (S.photoQueue.length > 0) {
-    const entry = S.photoQueue[0];
-    const item = PHOTO_ITEMS.find(function(p){ return p.id === entry.photoId; });
+    var entry = S.photoQueue[0];
+    var item = PHOTO_ITEMS.filter(function(p){ return p.id === entry.photoId; })[0];
     if (!item) { S.photoQueue.shift(); continue; }
     setCamBtnState(entry.photoId, true);
     S.photoStatus[entry.photoId] = 'uploading';
@@ -478,140 +575,137 @@ async function drainPhotoQueue() {
   S.photoUploading = false;
   updatePhotoSectionStatus();
 }
-
 function updatePhotoPill(photoId) {
-  const pill = document.getElementById('pill-' + photoId);
+  var pill = document.getElementById('pill-' + photoId);
   if (!pill) return;
-  const st = S.photoStatus[photoId] || 'none';
-  const labels = { none:'—', pending:'Queued', uploading:'Uploading', ok:'Saved', error:'Retry' };
+  var st = S.photoStatus[photoId] || 'none';
+  var labels = { none:'—', pending:'Queued', uploading:'Uploading', ok:'Saved', error:'Retry' };
   pill.textContent = labels[st] || st;
   pill.className = 'photo-pill ' + (st === 'uploading' ? 'pending' : st);
 }
-
 function setCamBtnState(photoId, uploading) {
-  const btn = document.getElementById('cam-btn-' + photoId);
+  var btn = document.getElementById('cam-btn-' + photoId);
   if (!btn) return;
   btn.classList.toggle('uploading', uploading);
   btn.innerHTML = uploading ? spinnerIcon() : cameraIcon();
 }
-
 function cameraIcon() {
-  return '<svg width="22" height="20" viewBox="0 0 22 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 3L6 5H3a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V7a2 2 0 00-2-2h-3l-1.5-2h-7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="11" cy="11" r="3" stroke="currentColor" stroke-width="1.5"/></svg>';
+  return '<svg width="22" height="20" viewBox="0 0 22 20" fill="none"><path d="M7.5 3L6 5H3a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V7a2 2 0 00-2-2h-3l-1.5-2h-7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="11" cy="11" r="3" stroke="currentColor" stroke-width="1.5"/></svg>';
 }
 function spinnerIcon() {
   return '<svg class="spin-sm" width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="#D8D4CA" stroke-width="2"/><path d="M9 2a7 7 0 017 7" stroke="#7A786E" stroke-width="2" stroke-linecap="round"/></svg>';
 }
+function updatePhotoSectionStatus() {
+  var taken = Object.values(S.assessment.photos || {}).filter(Boolean).length;
+  var total = PHOTO_ITEMS.length;
+  var pending = S.photoQueue.length;
+  var st = document.getElementById('photo-status');
+  if (!st) return;
+  if (pending > 0) { st.textContent = taken + '/' + total + ' — ' + pending + ' uploading'; st.className = 'sa-section-status'; st.style.color = 'var(--amber)'; }
+  else { st.textContent = taken + ' / ' + total; st.className = 'sa-section-status' + (taken === total ? ' ok' : ''); st.style.color = ''; }
+}
 
-// ── Render ──────────────────────────────────────────────────────
+// ── Render assessment ────────────────────────────────────────────
 function renderAssessment() {
-  const a = S.assessment;
+  var a = S.assessment;
   document.getElementById('nav-job-id').textContent = a.jobId || '';
   document.getElementById('nav-customer').textContent = a.jobId || '';
-  const container = document.getElementById('door-sections');
+
+  // Door sections
+  var container = document.getElementById('door-sections');
   container.innerHTML = '';
   a.doors.forEach(function(door, idx){ container.appendChild(buildDoorSection(door, idx)); });
-  renderCheckGrid();
+
+  // Site conditions
+  renderSiteConditions();
+
+  // Photos
   renderPhotoList();
+
   document.getElementById('field-notes').value = a.notes || '';
   updateCompleteness();
 }
 
-function renderPhotoList() {
-  const list = document.getElementById('photo-list');
-  list.innerHTML = '';
-  PHOTO_ITEMS.forEach(function(item) {
-    const taken = S.assessment.photos && S.assessment.photos[item.id];
-    const st = S.photoStatus[item.id] || 'none';
-    const labels = { none:'—', pending:'Queued', uploading:'Uploading', ok:'Saved', error:'Retry' };
-    const row = document.createElement('div');
-    row.className = 'photo-row';
-    row.innerHTML =
-      '<div class="photo-thumb-wrap">' +
-        '<img class="photo-thumb" id="thumb-' + item.id + '" style="display:' + (taken ? 'block' : 'none') + '" src="" alt="">' +
-        '<span class="photo-thumb-ph" id="thumb-ph-' + item.id + '" style="display:' + (taken ? 'none' : 'flex') + '">&#128247;</span>' +
-      '</div>' +
-      '<div class="photo-row-label">' + item.label + '</div>' +
-      '<span class="photo-pill ' + (st === 'uploading' ? 'pending' : st) + '" id="pill-' + item.id + '">' + (labels[st] || '—') + '</span>' +
-      '<button class="photo-cam-btn" id="cam-btn-' + item.id + '" onclick="triggerCamera(\'' + item.id + '\')" title="Take photo">' + cameraIcon() + '</button>';
-    list.appendChild(row);
-  });
-  updatePhotoSectionStatus();
-}
-
-function updatePhotoSectionStatus() {
-  const taken = Object.values(S.assessment.photos || {}).filter(Boolean).length;
-  const total = PHOTO_ITEMS.length;
-  const pending = S.photoQueue.length;
-  const st = document.getElementById('photo-status');
-  if (!st) return;
-  if (pending > 0) {
-    st.textContent = taken + '/' + total + ' — ' + pending + ' uploading';
-    st.className = 'sa-section-status'; st.style.color = 'var(--amber)';
-  } else {
-    st.textContent = taken + ' / ' + total;
-    st.className = 'sa-section-status' + (taken === total ? ' ok' : ''); st.style.color = '';
-  }
-}
-
-// ── Door sections ───────────────────────────────────────────────
+// ── Door section (opening + slope + track) ───────────────────────
 function buildDoorSection(door, idx) {
-  const sec = document.createElement('div');
+  var sec = document.createElement('div');
   sec.className = 'sa-section'; sec.id = 'door-sec-' + idx;
-  const fields = [
-    { key:'width',     label:'Width',        placeholder:"16'0\"",  unit:'ft – in' },
-    { key:'height',    label:'Height',       placeholder:"7'0\"",   unit:'ft – in' },
-    { key:'headroom',  label:'Headroom',     placeholder:'12"',     unit:'inches' },
-    { key:'backroom',  label:'Backroom',     placeholder:"18'0\"",  unit:'ft – in' },
-    { key:'sideleft',  label:'Side — Left',  placeholder:'3.5"',    unit:'inches' },
-    { key:'sideright', label:'Side — Right', placeholder:'3.5"',    unit:'inches' },
+  var openFields = [
+    { key:'width',     label:'Width',        placeholder:"16'0\"", unit:'ft – in' },
+    { key:'height',    label:'Height',       placeholder:"7'0\"",  unit:'ft – in' },
+    { key:'headroom',  label:'Headroom',     placeholder:'12"',    unit:'inches' },
+    { key:'backroom',  label:'Backroom',     placeholder:"18'0\"", unit:'ft – in' },
+    { key:'sideleft',  label:'Side — Left',  placeholder:'3.5"',   unit:'inches' },
+    { key:'sideright', label:'Side — Right', placeholder:'3.5"',   unit:'inches' },
   ];
-  const allFilled = fields.every(function(f){ return door[f.key] && door[f.key].trim(); });
-  const measHtml = fields.map(function(f) {
-    const empty = !door[f.key] || !door[f.key].trim();
+  var slopeFields = [
+    { key:'slope_ljamb', label:'L Jamb' },
+    { key:'slope_lqtr',  label:'L Qtr' },
+    { key:'slope_ctr',   label:'Center' },
+    { key:'slope_rqtr',  label:'R Qtr' },
+    { key:'slope_rjamb', label:'R Jamb' },
+  ];
+  var allFilled = openFields.every(function(f){ return door[f.key] && door[f.key].trim(); });
+
+  var openHtml = openFields.map(function(f) {
+    var empty = !door[f.key] || !door[f.key].trim();
     return '<div class="meas-field">' +
       '<div class="meas-label">' + f.label + '</div>' +
       '<input class="meas-input' + (empty ? ' required-empty' : '') + '" id="meas-' + idx + '-' + f.key + '" type="text" inputmode="decimal" placeholder="' + f.placeholder + '" value="' + escHtml(door[f.key] || '') + '" oninput="onMeasInput(' + idx + ',\'' + f.key + '\',this.value)">' +
       '<div class="meas-unit">' + f.unit + '</div></div>';
   }).join('');
+
+  var slopeHtml = slopeFields.map(function(f) {
+    return '<div class="meas-field">' +
+      '<div class="meas-label">' + f.label + '</div>' +
+      '<input class="meas-input" id="meas-' + idx + '-' + f.key + '" type="text" inputmode="decimal" placeholder=\'—\' value="' + escHtml(door[f.key] || '') + '" oninput="onMeasInput(' + idx + ',\'' + f.key + '\',this.value)">' +
+      '<div class="meas-unit">inches</div></div>';
+  }).join('');
+
   sec.innerHTML =
     '<div class="sa-section-hdr">' +
       '<span class="sa-section-title">Door ' + (idx+1) + ' — Measurements</span>' +
       '<span class="sa-section-status ' + (allFilled?'ok':'missing') + '" id="door-status-' + idx + '">' + (allFilled ? '&#10003; Complete' : 'Required') + '</span>' +
     '</div>' +
     '<div class="door-card">' +
-      '<div class="door-card-title"><span class="door-complete-dot ' + (allFilled?'ok':'missing') + '" id="door-dot-' + idx + '"></span>Rough Opening &amp; Space</div>' +
-      '<div class="meas-grid">' + measHtml + '</div>' +
+      '<div class="door-card-title"><span class="door-complete-dot ' + (allFilled?'ok':'missing') + '" id="door-dot-' + idx + '"></span>Opening</div>' +
+      '<div class="meas-grid">' + openHtml + '</div>' +
       '<div class="track-row">' +
-        '<div class="track-label">Track Solution</div>' +
+        '<div class="track-label">Track</div>' +
         '<select class="track-select" id="track-select-' + idx + '" onchange="onTrackOverride(' + idx + ',this.value)">' + buildTrackOptions(door) + '</select>' +
         '<span class="track-badge ' + getTrackBadgeType(door) + '" id="track-badge-' + idx + '">' + getTrackBadgeLabel(door) + '</span>' +
       '</div>' +
       '<div id="track-auto-note-' + idx + '" class="track-auto-note" style="display:' + (door.headroom && !door.trackOverride ? 'block' : 'none') + '">Auto-suggested from headroom</div>' +
+    '</div>' +
+    '<div class="door-card">' +
+      '<div class="door-card-title">Floor Slope — Laser Level</div>' +
+      '<div class="slope-grid">' + slopeHtml + '</div>' +
+      '<div class="slope-uneven-row">' +
+        '<div class="slope-uneven-label">Distinct Unevenness</div>' +
+        '<input class="slope-uneven-input" id="meas-' + idx + '-slope_uneven" type="text" placeholder="Describe if significant…" value="' + escHtml(door.slope_uneven || '') + '" oninput="onMeasInput(' + idx + ',\'slope_uneven\',this.value)">' +
+      '</div>' +
     '</div>';
   return sec;
 }
 
 function buildTrackOptions(door) {
-  const auto = headroomToInches(door.headroom);
-  const sug = trackFromHeadroom(auto);
-  const opts = [
-    { value:'',         label: door.headroom ? 'Auto: ' + sug.label : '— Enter headroom for auto-suggestion —' },
+  var opts = [
+    { value:'',         label: door.headroom ? 'Auto: ' + trackFromHeadroom(headroomToInches(door.headroom)).label : '— Enter headroom for auto-suggestion —' },
     { value:'standard', label:'Standard Radius (10"+ headroom)' },
     { value:'low',      label:'Low-Clearance Radius (6.25"–9.75")' },
     { value:'ext',      label:'Ext. Low-Clearance / Hi-Lift (4.75"–6.25")' },
     { value:'vertical', label:'Vertical Lift (no standard track)' },
     { value:'flag',     label:'Flag this job — non-standard' },
   ];
-  const cur = door.trackOverride || '';
+  var cur = door.trackOverride || '';
   return opts.map(function(o){ return '<option value="' + o.value + '"' + (cur === o.value ? ' selected' : '') + '>' + o.label + '</option>'; }).join('');
 }
-
 function headroomToInches(val) {
   if (!val) return null;
-  const s = val.toString().trim();
-  const dec = parseFloat(s.replace('"','').replace("'",''));
+  var s = val.toString().trim();
+  var dec = parseFloat(s.replace('"','').replace("'",''));
   if (!isNaN(dec) && dec < 30) return dec;
-  const ft = s.match(/(\d+)'?\s*(\d+(?:\.\d+)?)"?/);
+  var ft = s.match(/(\d+)'?\s*(\d+(?:\.\d+)?)"?/);
   if (ft) return parseFloat(ft[1])*12 + parseFloat(ft[2]);
   return parseFloat(s) || null;
 }
@@ -623,11 +717,11 @@ function getTrackBadgeLabel(door) {
   if (door.trackOverride) return { standard:'STD', low:'LOW', ext:'EXT', vertical:'VERT', flag:'FLAG', '':'—' }[door.trackOverride] || door.trackOverride.toUpperCase();
   return { standard:'STD', low:'LOW', ext:'EXT', na:'—' }[trackFromHeadroom(headroomToInches(door.headroom)).type] || '—';
 }
-
 function onMeasInput(idx, key, value) {
   S.assessment.doors[idx][key] = value;
   onDataChange();
-  document.getElementById('meas-' + idx + '-' + key).classList.toggle('required-empty', !value.trim());
+  var inp = document.getElementById('meas-' + idx + '-' + key);
+  if (inp) inp.classList.toggle('required-empty', !value.trim() && ['width','height','headroom','backroom','sideleft','sideright'].indexOf(key) >= 0);
   if (key === 'headroom') updateTrackSuggestion(idx);
   updateDoorStatus(idx);
   updateCompleteness();
@@ -635,64 +729,124 @@ function onMeasInput(idx, key, value) {
 function onTrackOverride(idx, val) {
   S.assessment.doors[idx].trackOverride = val;
   onDataChange();
-  const door = S.assessment.doors[idx];
-  const auto = trackFromHeadroom(headroomToInches(door.headroom));
-  const badge = document.getElementById('track-badge-' + idx);
+  var door = S.assessment.doors[idx];
+  var auto = trackFromHeadroom(headroomToInches(door.headroom));
+  var badge = document.getElementById('track-badge-' + idx);
   if (badge) {
     badge.className = 'track-badge ' + (val ? (val==='standard'?'standard':val==='low'?'low':'ext') : auto.type);
     badge.textContent = val ? ({standard:'STD',low:'LOW',ext:'EXT',vertical:'VERT',flag:'FLAG'}[val]||val.toUpperCase()) : ({standard:'STD',low:'LOW',ext:'EXT',na:'—'}[auto.type]||'—');
   }
-  const note = document.getElementById('track-auto-note-' + idx);
+  var note = document.getElementById('track-auto-note-' + idx);
   if (note) note.style.display = (!val && door.headroom) ? 'block' : 'none';
 }
 function updateTrackSuggestion(idx) {
-  const door = S.assessment.doors[idx];
-  const sel = document.getElementById('track-select-' + idx);
+  var door = S.assessment.doors[idx];
+  var sel = document.getElementById('track-select-' + idx);
   if (!sel) return;
-  const auto = trackFromHeadroom(headroomToInches(door.headroom));
+  var auto = trackFromHeadroom(headroomToInches(door.headroom));
   sel.options[0].text = door.headroom ? 'Auto: ' + auto.label : '— Enter headroom for auto-suggestion —';
-  const badge = document.getElementById('track-badge-' + idx);
-  if (badge && !door.trackOverride) {
-    badge.className = 'track-badge ' + auto.type;
-    badge.textContent = { standard:'STD', low:'LOW', ext:'EXT', na:'—' }[auto.type] || '—';
-  }
-  const note = document.getElementById('track-auto-note-' + idx);
+  var badge = document.getElementById('track-badge-' + idx);
+  if (badge && !door.trackOverride) { badge.className = 'track-badge ' + auto.type; badge.textContent = { standard:'STD', low:'LOW', ext:'EXT', na:'—' }[auto.type] || '—'; }
+  var note = document.getElementById('track-auto-note-' + idx);
   if (note) note.style.display = (door.headroom && !door.trackOverride) ? 'block' : 'none';
 }
 function updateDoorStatus(idx) {
-  const door = S.assessment.doors[idx];
-  const ok = ['width','height','headroom','backroom','sideleft','sideright'].every(function(f){ return door[f] && door[f].trim(); });
-  const st = document.getElementById('door-status-' + idx);
-  const dot = document.getElementById('door-dot-' + idx);
+  var door = S.assessment.doors[idx];
+  var ok = ['width','height','headroom','backroom','sideleft','sideright'].every(function(f){ return door[f] && door[f].trim(); });
+  var st = document.getElementById('door-status-' + idx);
+  var dot = document.getElementById('door-dot-' + idx);
   if (st) { st.textContent = ok ? '✓ Complete' : 'Required'; st.className = 'sa-section-status ' + (ok?'ok':'missing'); }
   if (dot) dot.className = 'door-complete-dot ' + (ok?'ok':'missing');
 }
 
-// ── Checkboxes ──────────────────────────────────────────────────
-function renderCheckGrid() {
-  const grid = document.getElementById('site-cond-grid');
-  grid.innerHTML = '';
-  SITE_CONDITIONS.forEach(function(item) {
-    const el = document.createElement('div');
-    el.className = 'check-item';
-    el.innerHTML =
-      '<div class="check-box ' + (S.assessment.conditions[item.id] ? 'checked' : '') + '" id="cb-' + item.id + '" onclick="toggleCheck(\'' + item.id + '\')">' +
-        '<span class="check-box-mark">&#10003;</span></div>' +
-      '<div class="check-text">' + item.label + (item.sub ? '<br><span class="check-sub">' + item.sub + '</span>' : '') + '</div>';
-    grid.appendChild(el);
-  });
+// ── Site Conditions ──────────────────────────────────────────────
+function renderSiteConditions() {
+  var a = S.assessment;
+  // Ceiling type
+  setCeilingUI(a.ceilType || '');
+  // Jamb/Header
+  setExpandUI('jamb', a.jambIssues, a.jambNotes || '');
+  // Outlet
+  var ob = document.getElementById('outlet-check');
+  if (ob) ob.classList.toggle('checked', !!a.outletOk);
+  // Access
+  setExpandUI('access', a.accessIssues, a.accessNotes || '');
 }
-function toggleCheck(itemId) {
-  S.assessment.conditions[itemId] = !S.assessment.conditions[itemId];
-  const box = document.getElementById('cb-' + itemId);
-  if (box) box.classList.toggle('checked', S.assessment.conditions[itemId]);
+
+function setCeiling(val) {
+  S.assessment.ceilType = (S.assessment.ceilType === val) ? '' : val; // tap again to deselect
+  setCeilingUI(S.assessment.ceilType);
+  // Show drywall note in jamb section if open
+  updateDrywallNote();
+  onDataChange();
+}
+function setCeilingUI(val) {
+  ['joists','drywall','other'].forEach(function(v) {
+    var btn = document.getElementById('ceil-' + v);
+    if (btn) btn.className = 'sc-btn' + (val === v ? (v === 'drywall' ? ' active-warn' : ' active') : '');
+  });
+  updateDrywallNote();
+}
+function updateDrywallNote() {
+  var note = document.getElementById('jamb-drywall-note');
+  if (note) note.classList.toggle('visible', S.assessment.ceilType === 'drywall');
+}
+
+function toggleExpand(key) {
+  var isChecked = !S.assessment[key + 'Issues'];
+  S.assessment[key + 'Issues'] = isChecked;
+  setExpandUI(key, isChecked, S.assessment[key + 'Notes'] || '');
+  onDataChange();
+}
+function setExpandUI(key, checked, notes) {
+  var check = document.getElementById(key + '-check');
+  var caret = document.getElementById(key + '-caret');
+  var body  = document.getElementById(key + '-body');
+  var ta    = document.getElementById(key + '-notes');
+  if (check) check.classList.toggle('checked', checked);
+  if (caret) caret.classList.toggle('open', checked);
+  if (body)  body.classList.toggle('open', checked);
+  if (ta)    ta.value = notes;
+  if (key === 'jamb') updateDrywallNote();
+}
+function onExpandInput(key, value) {
+  S.assessment[key + 'Notes'] = value;
+  onDataChange();
+}
+function toggleOutlet() {
+  S.assessment.outletOk = !S.assessment.outletOk;
+  var ob = document.getElementById('outlet-check');
+  if (ob) ob.classList.toggle('checked', S.assessment.outletOk);
   onDataChange();
 }
 
-// ── Completeness ────────────────────────────────────────────────
+// ── Photo list ───────────────────────────────────────────────────
+function renderPhotoList() {
+  var list = document.getElementById('photo-list');
+  list.innerHTML = '';
+  PHOTO_ITEMS.forEach(function(item) {
+    var taken = S.assessment.photos && S.assessment.photos[item.id];
+    var st = S.photoStatus[item.id] || 'none';
+    var labels = { none:'—', pending:'Queued', uploading:'Uploading', ok:'Saved', error:'Retry' };
+    var row = document.createElement('div');
+    row.className = 'photo-row';
+    row.innerHTML =
+      '<div class="photo-thumb-wrap">' +
+        '<img class="photo-thumb" id="thumb-' + item.id + '" style="display:' + (taken?'block':'none') + '" src="" alt="">' +
+        '<span class="photo-thumb-ph" id="thumb-ph-' + item.id + '" style="display:' + (taken?'none':'flex') + '">&#128247;</span>' +
+      '</div>' +
+      '<div class="photo-row-label">' + item.label + '</div>' +
+      '<span class="photo-pill ' + (st==='uploading'?'pending':st) + '" id="pill-' + item.id + '">' + (labels[st]||'—') + '</span>' +
+      '<button class="photo-cam-btn" id="cam-btn-' + item.id + '" onclick="triggerCamera(\'' + item.id + '\')" title="Take photo">' + cameraIcon() + '</button>';
+    list.appendChild(row);
+  });
+  updatePhotoSectionStatus();
+}
+
+// ── Completeness ─────────────────────────────────────────────────
 function getMissingFields() {
-  const missing = [];
-  const labels = { width:'Width', height:'Height', headroom:'Headroom', backroom:'Backroom', sideleft:'Side-L', sideright:'Side-R' };
+  var missing = [];
+  var labels = { width:'Width', height:'Height', headroom:'Headroom', backroom:'Backroom', sideleft:'Side-L', sideright:'Side-R' };
   S.assessment.doors.forEach(function(door, idx) {
     ['width','height','headroom','backroom','sideleft','sideright'].forEach(function(f) {
       if (!door[f] || !door[f].trim()) missing.push('Door ' + (idx+1) + ': ' + labels[f]);
@@ -701,46 +855,45 @@ function getMissingFields() {
   return missing;
 }
 function updateCompleteness() {
-  const missing = getMissingFields();
-  const total = S.assessment.doors.length * 6;
-  const filled = total - missing.length;
-  const pct = total > 0 ? Math.round(filled/total*100) : 100;
-  const complete = missing.length === 0;
+  var missing = getMissingFields();
+  var total = S.assessment.doors.length * 6;
+  var filled = total - missing.length;
+  var pct = total > 0 ? Math.round(filled/total*100) : 100;
+  var complete = missing.length === 0;
   document.getElementById('completeness-bar').className = complete ? 'complete' : 'incomplete';
-  const lbl = document.getElementById('comp-label');
+  var lbl = document.getElementById('comp-label');
   lbl.className = 'completeness-label ' + (complete?'complete':'incomplete');
   lbl.textContent = complete ? 'All Measurements Complete' : 'Measurements Incomplete';
-  const det = document.getElementById('comp-detail');
+  var det = document.getElementById('comp-detail');
   det.className = complete ? 'completeness-ok' : 'completeness-missing';
   det.textContent = complete ? 'All required fields filled. Safe to leave the site.' : 'Missing: ' + missing.slice(0,4).join(', ') + (missing.length>4 ? ' +' + (missing.length-4) + ' more' : '');
   document.getElementById('comp-pct').textContent = pct + '%';
-  const arc = document.getElementById('comp-arc');
+  var arc = document.getElementById('comp-arc');
   arc.setAttribute('stroke-dashoffset', (75.4 - pct/100*75.4).toFixed(1));
   arc.setAttribute('stroke', complete ? '#1A6B3A' : pct >= 50 ? '#B07A00' : '#8B1E1E');
 }
 
-// ── Save ────────────────────────────────────────────────────────
+// ── Save ─────────────────────────────────────────────────────────
 function onDataChange() {
-  const n = document.getElementById('field-notes');
-  if (n) S.assessment.notes = n.value;
+  var n = document.getElementById('field-notes'); if (n) S.assessment.notes = n.value;
   saveLocal(); S.pendingSave = true; setSaveStatus('unsaved','Unsaved');
   clearTimeout(S._autoSaveTimer);
   S._autoSaveTimer = setTimeout(function(){ saveAssessment(true); }, 2000);
 }
 function setSaveStatus(cls, text) {
-  const el = document.getElementById('save-status');
+  var el = document.getElementById('save-status');
   el.className = cls; el.textContent = text; el.style.display = 'inline-block';
 }
 async function saveAssessment(auto) {
   if (!S.assessment || !S.jobId) return;
-  const n = document.getElementById('field-notes'); if (n) S.assessment.notes = n.value;
+  var n = document.getElementById('field-notes'); if (n) S.assessment.notes = n.value;
   setSaveStatus('saving','Saving…');
   document.getElementById('retry-banner').classList.remove('visible');
   S.assessment._savedAt = Date.now();
   try {
     await graphPutJSON(drivePath(S.jobId, 'site_assessment.json'), S.assessment);
     saveLocal(); S.pendingSave = false; setSaveStatus('saved','Saved');
-    setTimeout(function(){ const el = document.getElementById('save-status'); if (el.classList.contains('saved')) el.style.display = 'none'; }, 3000);
+    setTimeout(function(){ var el = document.getElementById('save-status'); if (el.classList.contains('saved')) el.style.display = 'none'; }, 3000);
   } catch(e) {
     saveLocal(); S.pendingSave = true; setSaveStatus('error','Save failed');
     if (!auto) document.getElementById('retry-banner').classList.add('visible');
@@ -748,16 +901,13 @@ async function saveAssessment(auto) {
   }
 }
 function retrySave() { document.getElementById('retry-banner').classList.remove('visible'); saveAssessment(false); }
-function showOfflineToast() {
-  const t = document.getElementById('offline-toast'); t.classList.add('visible');
-  setTimeout(function(){ t.classList.remove('visible'); }, 4000);
-}
+function showOfflineToast() { var t = document.getElementById('offline-toast'); t.classList.add('visible'); setTimeout(function(){ t.classList.remove('visible'); }, 4000); }
 window.addEventListener('online', function() {
   if (S.pendingSave && S.jobId) saveAssessment(true);
   if (S.photoQueue.length > 0) drainPhotoQueue();
 });
 
-// ── Helpers ─────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────
 function showPage(name) {
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   document.getElementById({ home:'page-home', assess:'page-assess' }[name]).classList.add('active');
