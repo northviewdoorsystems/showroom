@@ -846,9 +846,13 @@ function renderPhotoList() {
 // ── Completeness ─────────────────────────────────────────────────
 function getMissingFields() {
   var missing = [];
-  var labels = { width:'Width', height:'Height', headroom:'Headroom', backroom:'Backroom', sideleft:'Side-L', sideright:'Side-R' };
+  var labels = {
+    width:'Width', height:'Height', headroom:'Headroom', backroom:'Backroom', sideleft:'Side-L', sideright:'Side-R',
+    slope_ljamb:'Slope L-Jamb', slope_lqtr:'Slope L-Qtr', slope_ctr:'Slope Ctr', slope_rqtr:'Slope R-Qtr', slope_rjamb:'Slope R-Jamb'
+  };
+  var required = ['width','height','headroom','backroom','sideleft','sideright','slope_ljamb','slope_lqtr','slope_ctr','slope_rqtr','slope_rjamb'];
   S.assessment.doors.forEach(function(door, idx) {
-    ['width','height','headroom','backroom','sideleft','sideright'].forEach(function(f) {
+    required.forEach(function(f) {
       if (!door[f] || !door[f].trim()) missing.push('Door ' + (idx+1) + ': ' + labels[f]);
     });
   });
@@ -856,7 +860,7 @@ function getMissingFields() {
 }
 function updateCompleteness() {
   var missing = getMissingFields();
-  var total = S.assessment.doors.length * 6;
+  var total = S.assessment.doors.length * 11;
   var filled = total - missing.length;
   var pct = total > 0 ? Math.round(filled/total*100) : 100;
   var complete = missing.length === 0;
