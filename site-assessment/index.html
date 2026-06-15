@@ -896,12 +896,185 @@ async function saveAssessment(auto) {
   S.assessment._savedAt = Date.now();
   try {
     await graphPutJSON(drivePath(S.jobId, 'site_assessment.json'), S.assessment);
+    // Also write the human-readable viewer — fire and forget, don't block on failure
+    try { await graphPutText(drivePath(S.jobId, 'site_assessment.html'), buildViewerHTML(S.assessment)); } catch(e) {}
     saveLocal(); S.pendingSave = false; setSaveStatus('saved','Saved');
     setTimeout(function(){ var el = document.getElementById('save-status'); if (el.classList.contains('saved')) el.style.display = 'none'; }, 3000);
   } catch(e) {
     saveLocal(); S.pendingSave = true; setSaveStatus('error','Save failed');
     if (!auto) document.getElementById('retry-banner').classList.add('visible');
     showOfflineToast();
+  }
+}
+
+async function graphPutText(path, text) {
+  var token = await getToken();
+  var r = await fetch('https://graph.microsoft.com/v1.0' + path + ':/content', {
+    method: 'PUT', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'text/html' },
+    body: text
+  });
+  if (!r.ok) throw new Error('Graph PUT text ' + r.status);
+}
+
+function buildViewerHTML(a) {
+  var doors = a.doors || [];
+  var openCols = [
+    { key:'width', label:'Width' }, { key:'height', label:'Height' },
+    { key:'headroom', label:'Headroom' }, { key:'backroom', label:'Backroom' },
+    { key:'sideleft', label:'Side L' }, { key:'sideright', label:'Side R' },
+  ];
+  var slopeCols = [
+    { key:'slope_ljamb', label:'L Jamb' }, { key:'slope_lqtr', label:'L Qtr' },
+    { key:'slope_ctr', label:'Center' }, { key:'slope_rqtr', label:'R Qtr' },
+    { key:'slope_rjamb', label:'R Jamb' },
+  ];
+  var ceilLabels = { joists:'Open Joists', drywall:'Drywall', other:'Other', '':'—' };
+
+  function eh(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function v(val) { return (val && String(val).trim()) ? String(val).trim() : null; }
+  function td(val) { return val ? '<td>' + eh(val) + '</td>' : '<td style="color:#D8D4CA;font-weight:400">—</td>'; }
+  function formatDate(ts) { if (!ts) return ''; var d = new Date(ts); return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}); }
+
+  function trackBadge(door) {
+    var override = door.trackOverride;
+    var type, label;
+    if (override) {
+      var map = { standard:['standard','Standard Radius'], low:['low','Low-Clearance Radius'], ext:['ext','Ext. Low-Clearance / Hi-Lift'], vertical:['ext','Vertical Lift'], flag:['ext','Non-Standard — See Notes'] };
+      var m = map[override] || ['na', override];
+      type = m[0]; label = m[1];
+    } else {
+      var inches = null;
+      if (door.headroom) {
+        var s = String(door.headroom).trim();
+        var dec = parseFloat(s.replace('"','').replace("'",''));
+        if (!isNaN(dec) && dec < 30) inches = dec;
+        else { var ft = s.match(/(\d+)'?\s*(\d+(?:\.\d+)?)"?/); if (ft) inches = parseFloat(ft[1])*12+parseFloat(ft[2]); }
+      }
+      if (inches === null) { type='na'; label='—'; }
+      else if (inches>=10) { type='standard'; label='Standard Radius'; }
+      else if (inches>=6.25) { type='low'; label='Low-Clearance Radius'; }
+      else { type='ext'; label='Ext. Low-Clearance (Hi-Lift)'; }
+    }
+    var colors = { standard:'background:#e9f6ee;color:#1A6B3A;border:1px solid #a8d8b9', low:'background:#fff8e1;color:#B07A00;border:1px solid #f0d870', ext:'background:#fdf0f0;color:#8B1E1E;border:1px solid #f0c8c8', na:'background:#F5F3EE;color:#7A786E;border:1px solid #D8D4CA' };
+    return '<span style="display:inline-block;font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;' + (colors[type]||colors.na) + '">' + eh(label) + '</span>';
+  }
+
+  // Opening table
+  var openRows = doors.map(function(door, idx) {
+    var cells = openCols.map(function(c){ return td(v(door[c.key])); }).join('');
+    return '<tr><td style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7A786E;background:#F5F3EE;text-align:left">Door '+(idx+1)+'</td>' + cells + '<td>' + trackBadge(door) + '</td></tr>';
+  }).join('');
+  var openHeads = openCols.map(function(c){ return '<th>'+c.label+'</th>'; }).join('');
+
+  // Slope table
+  var slopeRows = doors.map(function(door, idx) {
+    var cells = slopeCols.map(function(c){ return td(v(door[c.key])); }).join('');
+    return '<tr><td style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7A786E;background:#F5F3EE">Door '+(idx+1)+'</td>' + cells + '</tr>';
+  }).join('');
+  var slopeHeads = slopeCols.map(function(c){ return '<th>'+c.label+'</th>'; }).join('');
+
+  var unevenRows = doors.map(function(d,i){ return d.slope_uneven ? '<b>Door '+(i+1)+':</b> '+eh(d.slope_uneven) : null; }).filter(Boolean);
+  var unevenSection = unevenRows.length ? '<div style="padding:10px 14px;border-top:1px solid #D8D4CA;font-size:13px;color:#3A3A36"><div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7A786E;margin-bottom:4px">Distinct Unevenness</div>' + unevenRows.join(' &nbsp;/&nbsp; ') + '</div>' : '';
+
+  // Site conditions
+  function scRow(label, value, warn) {
+    var style = warn ? 'background:#fff8e1;color:#B07A00;border:1px solid #f0d870;display:inline-block;font-size:10px;font-weight:700;padding:2px 8px' : '';
+    var display = warn ? '<span style="'+style+'">'+eh(value)+'</span>' : '<span style="font-size:13px;font-weight:600;color:#3A3A36">'+eh(value)+'</span>';
+    if (!value) display = '<span style="font-size:13px;color:#D8D4CA">None noted</span>';
+    return '<div style="display:flex;flex-direction:column;gap:3px"><div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7A786E">'+label+'</div>'+display+'</div>';
+  }
+  function pillYN(val) {
+    return val
+      ? '<span style="background:#e9f6ee;color:#1A6B3A;border:1px solid #a8d8b9;display:inline-block;font-size:10px;font-weight:700;padding:2px 8px">Yes</span>'
+      : '<span style="background:#F5F3EE;color:#7A786E;border:1px solid #D8D4CA;display:inline-block;font-size:10px;font-weight:700;padding:2px 8px">No</span>';
+  }
+  var ceilVal = ceilLabels[a.ceilType||''] || '—';
+  var scHtml =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;padding:14px">' +
+    scRow('Ceiling Type', ceilVal, a.ceilType==='drywall') +
+    '<div style="display:flex;flex-direction:column;gap:3px"><div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7A786E">Outlet Confirmed</div>' + pillYN(a.outletOk) + '</div>' +
+    scRow('Jamb / Header Issues', a.jambIssues ? (a.jambNotes||'Yes — see notes') : null) +
+    scRow('Unique Site Access', a.accessIssues ? (a.accessNotes||'Yes — see notes') : null) +
+    '</div>';
+
+  // Photos
+  var photoItems = [
+    { id:'photo_exterior', label:'Full opening — exterior',   filename:'photo_exterior.jpg' },
+    { id:'photo_interior', label:'Full opening — interior',   filename:'photo_interior.jpg' },
+    { id:'photo_headroom', label:'Headroom & ceiling',        filename:'photo_headroom.jpg' },
+    { id:'photo_spring',   label:'Spring system',             filename:'photo_spring.jpg' },
+    { id:'photo_jamb',     label:'Jamb & header',             filename:'photo_jamb.jpg' },
+    { id:'photo_opener',   label:'Existing opener',           filename:'photo_opener.jpg' },
+    { id:'photo_floor',    label:'Floor / threshold',         filename:'photo_floor.jpg' },
+    { id:'photo_issues',   label:'Obstructions or issues',    filename:'photo_issues.jpg' },
+  ];
+  var photoHtml = photoItems.map(function(item) {
+    var taken = a.photos && a.photos[item.id];
+    var img = taken
+      ? '<img src="'+eh(item.filename)+'" alt="'+eh(item.label)+'" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentNode.innerHTML=\'<div style=\\\"display:flex;align-items:center;justify-content:center;height:100%;font-size:32px;opacity:0.2\\\">&#128247;</div>\'">'
+      : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:32px;opacity:0.2">&#128247;</div>';
+    return '<div style="background:#fff;display:flex;flex-direction:column">' +
+      '<div style="aspect-ratio:4/3;background:#F5F3EE;overflow:hidden">' + img + '</div>' +
+      '<div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7A786E;padding:7px 10px;border-top:1px solid #D8D4CA">' + eh(item.label) + '</div>' +
+      '</div>';
+  }).join('');
+
+  var notes = (a.notes && a.notes.trim()) ? eh(a.notes.trim()).replace(/\n/g,'<br>') : '<span style="color:#D8D4CA;font-style:italic">No field notes recorded.</span>';
+
+  var thStyle = 'font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7A786E;padding:8px 12px;text-align:center;border-bottom:1px solid #D8D4CA;border-right:1px solid #D8D4CA;background:#F5F3EE';
+  var thStyleL = thStyle + ';text-align:left';
+  var thLast = 'font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7A786E;padding:8px 12px;text-align:center;border-bottom:1px solid #D8D4CA;background:#F5F3EE';
+  var tdBase = 'padding:10px 12px;text-align:center;font-size:14px;font-weight:700;color:#152848;border-bottom:1px solid #D8D4CA;border-right:1px solid #D8D4CA';
+
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>Site Assessment — ' + eh(a.jobId||'') + '</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">' +
+    '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:\'Source Sans 3\',system-ui,sans-serif;color:#3A3A36;background:#F5F3EE}table{border-collapse:collapse;width:100%}</style>' +
+    '</head><body>' +
+
+    // Header
+    '<div style="background:#152848;padding:20px 24px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px">' +
+      '<img src="../Primary-Logo-Northview.png" style="height:36px;width:auto" onerror="this.style.display=\'none\'">' +
+      '<div style="text-align:right">' +
+        '<div style="font-size:9px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:rgba(255,255,255,0.5)">Site Assessment</div>' +
+        '<div style="font-family:\'Libre Baskerville\',serif;font-size:18px;font-weight:700;color:#fff;margin-top:2px">' + eh(a.jobId||'—') + '</div>' +
+        '<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:3px">' + (a._savedAt ? 'Last saved ' + formatDate(a._savedAt) : '') + '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div style="padding:16px;display:flex;flex-direction:column;gap:14px;max-width:800px;margin:0 auto">' +
+
+    // Opening measurements
+    section('Opening Measurements',
+      '<table><tr><th style="'+thStyleL+'">Door</th>' + openHeads.replace(/<th>/g,'<th style="'+thStyle+'">').replace(/<\/th><th>/g,'</th><th style="'+thStyle+'">') + '<th style="'+thLast+'">Track Solution</th></tr>' +
+      openRows.replace(/<td>/g,'<td style="'+tdBase+'">').replace(/<td style="[^"]*color:#D8D4CA[^"]*">/g,'<td style="'+tdBase+';color:#D8D4CA;font-weight:400">') +
+      '</table>') +
+
+    // Slope
+    section('Floor Slope — Laser Level',
+      '<table><tr><th style="'+thStyleL+'">Door</th>' + slopeHeads.replace(/<th>/g,'<th style="'+thStyle+'">').replace(/<\/th><th>/g,'</th><th style="'+thStyle+'">') + '</tr>' +
+      slopeRows.replace(/<td>/g,'<td style="'+tdBase+'">').replace(/<td style="[^"]*color:#D8D4CA[^"]*">/g,'<td style="'+tdBase+';color:#D8D4CA;font-weight:400">') +
+      '</table>' + unevenSection) +
+
+    // Site conditions
+    section('Site Conditions', scHtml) +
+
+    // Photos
+    section('Site Photos', '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:#D8D4CA">' + photoHtml + '</div>') +
+
+    // Notes
+    section('Field Notes', '<div style="padding:12px 14px;font-size:13px;line-height:1.7;color:#3A3A36">' + notes + '</div>') +
+
+    '</div>' +
+    '<div style="padding:20px;text-align:center;font-size:10px;color:#7A786E;border-top:1px solid #D8D4CA;margin-top:4px">' +
+      'Northview Doors &amp; Systems &nbsp;·&nbsp; northviewdoorsystems.com &nbsp;·&nbsp; (952) 314-2468 &nbsp;·&nbsp; Eden Prairie, MN' +
+    '</div>' +
+    '</body></html>';
+
+  function section(title, body) {
+    return '<div style="background:#fff;border:1px solid #D8D4CA">' +
+      '<div style="background:#F5F3EE;border-bottom:1px solid #D8D4CA;padding:9px 14px;font-size:9px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#152848">' + title + '</div>' +
+      body + '</div>';
   }
 }
 function retrySave() { document.getElementById('retry-banner').classList.remove('visible'); saveAssessment(false); }
