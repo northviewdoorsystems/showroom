@@ -649,7 +649,10 @@ function calcOptionTotal(opt) {
       if (op) openerPrice = op.bundlePrice;
     }
     // Opener is excluded from tax and CC fee — its bundlePrice is already the all-in customer price
-    preCC += matCost*(1+A.markup) + labor + tax;
+    const markup = (A.markupStandard !== undefined)
+      ? (dd.doorCost >= (A.markupThreshold||0) ? A.markupPremium : A.markupStandard)
+      : (A.markup || 0);
+    preCC += matCost*(1+markup) + labor + tax;
     openerTotal += openerPrice;
   }
   const beforeCC = preCC + (opt.nonStandardAmt||0);
