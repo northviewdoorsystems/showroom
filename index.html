@@ -487,7 +487,7 @@ async function openJob() {
       if (!opt.manufacturer && opt.doors?.[0]?.manufacturer) {
         opt.manufacturer = opt.doors[0].manufacturer;
         opt.model = opt.doors[0].model;
-        opt.doors = opt.doors.map(d => ({ size:d.size, opener:d.opener||false, openerModel:d.openerModel||'' }));
+        opt.doors = opt.doors.map(d => ({ size:d.size, opener:d.opener||false, openerModel:d.openerModel||'', premiumGlass:d.premiumGlass||false, lowHeadroom:d.lowHeadroom||false }));
       }
       if (opt.panelDesign === undefined) opt.panelDesign = '';
       if (opt.color === undefined) opt.color = opt.notes || '';
@@ -527,7 +527,7 @@ function defaultOptions() {
     doors:[emptyDoor()], nonStandardDesc:'', nonStandardAmt:0, notes:''
   }));
 }
-function emptyDoor() { return { size:'', opener:false, openerModel:'' }; }
+function emptyDoor() { return { size:'', opener:false, openerModel:'', premiumGlass:false, lowHeadroom:false }; }
 function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
 
 // ═══ PRODUCT DATA HELPERS ════════════════════════════════════
@@ -620,6 +620,7 @@ function calcOptionTotal(opt) {
   const winEntry = (opt.windows && effWt)
     ? S.pricing.windows.find(w => w.manufacturer===opt.manufacturer && w.type===effWt) : null;
   let preCC = 0;
+  let openerTotal = 0;
   for (const door of opt.doors) {
     const dd = S.pricing.doors.find(d => d.manufacturer===opt.manufacturer && d.model===opt.model && d.size===door.size);
     if (!dd) return null;
@@ -637,7 +638,9 @@ function calcOptionTotal(opt) {
       }
     }
     const sealCost = A.weatherseal1Car * cars;
-    const matCost = dd.doorCost + woodCost + winCost + insCost + sealCost;
+    const glassCost = door.premiumGlass ? (A.premiumGlass1Car||0) * cars : 0;
+    const lowHCost  = door.lowHeadroom  ? (A.lowHeadroomPerDoor||0) : 0;
+    const matCost = dd.doorCost + woodCost + winCost + insCost + sealCost + glassCost + lowHCost;
     const labor = cars===1 ? A.labor1Car : A.labor2Car;
     const tax = matCost * A.taxRate;
     let openerPrice = 0;
@@ -645,10 +648,12 @@ function calcOptionTotal(opt) {
       const op = S.pricing.openers.find(o => o.model===door.openerModel);
       if (op) openerPrice = op.bundlePrice;
     }
-    preCC += matCost*(1+A.markup) + labor + tax + openerPrice;
+    // Opener is excluded from tax and CC fee — its bundlePrice is already the all-in customer price
+    preCC += matCost*(1+A.markup) + labor + tax;
+    openerTotal += openerPrice;
   }
   const beforeCC = preCC + (opt.nonStandardAmt||0);
-  return beforeCC * (1 + A.ccFee);
+  return beforeCC * (1 + A.ccFee) + openerTotal;
 }
 
 // ═══ RECOMMENDATIONS ═════════════════════════════════════════
@@ -960,12 +965,14 @@ function renderConfigBody() {
       });
     }
     dform.innerHTML += rowHtml([fieldHtml('Size',`<select onchange="cfDoorSet(${di},'size',this.value)"${!o.model?' disabled':''}>${sizeOpts}</select>`, 'max-width:110px')]);
-    dform.innerHTML += toggleRowHtml('LiftMaster Opener','__opener_'+di, door.opener, di);
+    dform.innerHTML += toggleRowHtml('LiftMaster Opener','opener', door.opener, di);
     if (door.opener) {
       let opOpts = '<option value="">— Model —</option>';
       S.pricing?.openers.forEach(op => { opOpts += `<option value="${op.model}"${door.openerModel===op.model?' selected':''}>${op.model} — ${op.description} (${fmt(op.bundlePrice)} w/ install)</option>`; });
       dform.innerHTML += `<div class="cf-sub"><div class="cf-form" style="padding:8px 0 0 0">${rowHtml([fieldHtml('Opener Model',`<select onchange="cfDoorSet(${di},'openerModel',this.value)">${opOpts}</select>`)])}</div></div>`;
     }
+    dform.innerHTML += toggleRowHtml('Premium Glass','premiumGlass', door.premiumGlass, di);
+    dform.innerHTML += toggleRowHtml('Low Headroom','lowHeadroom', door.lowHeadroom, di);
     sec3.appendChild(dform);
   });
 
@@ -1016,7 +1023,7 @@ function bindToggles() {
 
 function toggleRowHtml(label, field, checked, di) {
   const isDoor = di !== undefined;
-  const diAttr = isDoor ? `data-di="${di}" data-field="opener"` : `data-field="${field}"`;
+  const diAttr = isDoor ? `data-di="${di}" data-field="${field}"` : `data-field="${field}"`;
   return `<div class="cf-toggle-row">
     <span class="cf-toggle-label">${label}</span>
     <label class="cf-switch">
