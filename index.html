@@ -747,9 +747,8 @@ function buildRecCard(opt, idx) {
   if (openers.length) {
     const op = S.pricing?.openers.find(o=>o.model===openers[0].openerModel);
     if (op) {
-      const label = op.brand && op.brand!==op.model ? `${op.brand} ${op.model}` : (op.brand||op.model);
       const suffix = (!op.manualPrice && openers.length>1) ? ' (×'+openers.length+')' : '';
-      details.push(`${label}${suffix}`);
+      details.push(`${op.brand||''} ${op.model}`.trim()+suffix);
     }
   }
 
@@ -987,10 +986,20 @@ function renderConfigBody() {
     if (door.opener) {
       let opOpts = '<option value="">— Model —</option>';
       S.pricing?.openers.forEach(op => {
-        const priceLabel = op.manualPrice ? 'custom price — enter below' : `${fmt(op.bundlePrice)} w/ install`;
-        opOpts += `<option value="${op.model}"${door.openerModel===op.model?' selected':''}>${op.model} — ${op.description} (${priceLabel})</option>`;
+        const label = op.manualPrice
+          ? `${op.brand} ${op.model} — price entered below`
+          : `${op.brand} ${op.model} — ${op.description} (${fmt(op.bundlePrice)} w/ install)`;
+        opOpts += `<option value="${op.model}"${door.openerModel===op.model?' selected':''}>${label}</option>`;
       });
-      dform.innerHTML += `<div class="cf-sub"><div class="cf-form" style="padding:8px 0 0 0">${rowHtml([fieldHtml('Opener Model',`<select onchange="cfDoorSet(${di},'openerModel',this.value)">${opOpts}</select>`)])}</div></div>`;
+      const openerFields = [fieldHtml('Opener Model',`<select onchange="cfDoorSet(${di},'openerModel',this.value)">${opOpts}</select>`)];
+      const selectedOp = S.pricing?.openers.find(op => op.model===door.openerModel);
+      const firstManualIdx = o.doors.findIndex(d => d.opener && d.openerModel && S.pricing?.openers.find(op=>op.model===d.openerModel)?.manualPrice);
+      if (selectedOp?.manualPrice && firstManualIdx===di) {
+        openerFields.push(fieldHtml('Custom Price ($) — total for this option',
+          `<input type="number" placeholder="0" min="0" step="1" value="${o.openerCustomPrice||''}" oninput="opt().openerCustomPrice=parseFloat(this.value)||0;updateConfigPrice()">`,
+          'max-width:140px'));
+      }
+      dform.innerHTML += `<div class="cf-sub"><div class="cf-form" style="padding:8px 0 0 0">${rowHtml(openerFields)}</div></div>`;
     }
     dform.innerHTML += toggleRowHtml('Premium Glass','premiumGlass', door.premiumGlass, di);
     dform.innerHTML += toggleRowHtml('Low Headroom','lowHeadroom', door.lowHeadroom, di);
@@ -1004,16 +1013,6 @@ function renderConfigBody() {
     addBtn.innerHTML = '+ Add Door';
     addBtn.onclick = cfAddDoor;
     sec3.appendChild(addBtn);
-  }
-
-  if (hasManualOpener(o)) {
-    const manualForm = makeForm();
-    manualForm.innerHTML += rowHtml([fieldHtml(
-      'Custom Opener Price ($) — total for this option, install included',
-      `<input type="number" placeholder="0" min="0" step="1" value="${o.openerCustomPrice||''}" oninput="opt().openerCustomPrice=parseFloat(this.value)||0;updateConfigPrice()">`,
-      'max-width:200px'
-    )]);
-    sec3.appendChild(manualForm);
   }
   body.appendChild(sec3);
 
@@ -1221,9 +1220,8 @@ function buildPrintOption(opt) {
   if (openers.length) {
     const op = S.pricing?.openers.find(o => o.model===openers[0].openerModel);
     if (op) {
-      const label = op.brand && op.brand!==op.model ? `${op.brand} ${op.model}` : (op.brand||op.model);
       const suffix = (!op.manualPrice && openers.length>1) ? ' (&times;'+openers.length+')' : '';
-      details.push(`${label}${suffix}`);
+      details.push(`${op.brand||''} ${op.model}`.trim()+suffix);
     }
   }
   if (opt.nonStandardDesc && opt.nonStandardAmt) {
