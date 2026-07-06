@@ -494,6 +494,7 @@ async function openJob() {
       if (opt.inserts === undefined) opt.inserts = false;
       if (opt.insertStyle === undefined) opt.insertStyle = '';
       if (opt.overlayColor === undefined) opt.overlayColor = '';
+      if (opt.openerCustomPrice === undefined) opt.openerCustomPrice = 0;
     });
     S.originalConfig = deepCopy(S.config);
     S.modifiedOptions = new Set();
@@ -524,7 +525,7 @@ function defaultOptions() {
   return ['GOOD','BETTER','BEST'].map(tier => ({
     tier, manufacturer:'', model:'', panelDesign:'', color:'', overlayColor:'',
     windows:false, windowType:'', inserts:false, insertStyle:'',
-    doors:[emptyDoor()], nonStandardDesc:'', nonStandardAmt:0, notes:''
+    doors:[emptyDoor()], nonStandardDesc:'', nonStandardAmt:0, notes:'', openerCustomPrice:0
   }));
 }
 function emptyDoor() { return { size:'', opener:false, openerModel:'', premiumGlass:false, lowHeadroom:false }; }
@@ -543,6 +544,13 @@ function checkWoodtone(mfr, model, color) {
   if (mfr === 'Haas') { const mc = C.Haas[model] || C.Haas; return (mc?.woodgrain||[]).includes(color); }
   if (mfr === 'CHI') return (C.CHI?.[model]?.accentWoodtone||[]).includes(color);
   return false;
+}
+function hasManualOpener(opt) {
+  return (opt.doors||[]).some(d => {
+    if (!d.opener || !d.openerModel) return false;
+    const op = S.pricing?.openers.find(o => o.model===d.openerModel);
+    return !!op?.manualPrice;
+  });
 }
 function anyDoorIsTwoCar(opt) {
   if (!opt.doors.length) return false;
@@ -646,7 +654,9 @@ function calcOptionTotal(opt) {
     let openerPrice = 0;
     if (door.opener && door.openerModel) {
       const op = S.pricing.openers.find(o => o.model===door.openerModel);
-      if (op) openerPrice = op.bundlePrice;
+      // Manual-price openers (e.g. Sommer) are priced once for the whole option below,
+      // not per door — too configuration-dependent to multiply per opening.
+      if (op && !op.manualPrice) openerPrice = op.bundlePrice;
     }
     // Opener is excluded from tax and CC fee — its bundlePrice is already the all-in customer price
     const markup = (A.markupStandard !== undefined)
@@ -655,6 +665,7 @@ function calcOptionTotal(opt) {
     preCC += matCost*(1+markup) + labor + tax;
     openerTotal += openerPrice;
   }
+  if (hasManualOpener(opt)) openerTotal += (opt.openerCustomPrice || 0);
   const beforeCC = preCC + (opt.nonStandardAmt||0);
   return beforeCC * (1 + A.ccFee) + openerTotal;
 }
@@ -735,7 +746,11 @@ function buildRecCard(opt, idx) {
   const openers = opt.doors.filter(d=>d.opener&&d.openerModel);
   if (openers.length) {
     const op = S.pricing?.openers.find(o=>o.model===openers[0].openerModel);
-    if (op) details.push(`LiftMaster ${op.model}${openers.length>1?' (×'+openers.length+')':''}`);
+    if (op) {
+      const label = op.brand && op.brand!==op.model ? `${op.brand} ${op.model}` : (op.brand||op.model);
+      const suffix = (!op.manualPrice && openers.length>1) ? ' (×'+openers.length+')' : '';
+      details.push(`${label}${suffix}`);
+    }
   }
 
   const card = document.createElement('div');
@@ -968,10 +983,13 @@ function renderConfigBody() {
       });
     }
     dform.innerHTML += rowHtml([fieldHtml('Size',`<select onchange="cfDoorSet(${di},'size',this.value)"${!o.model?' disabled':''}>${sizeOpts}</select>`, 'max-width:110px')]);
-    dform.innerHTML += toggleRowHtml('LiftMaster Opener','opener', door.opener, di);
+    dform.innerHTML += toggleRowHtml('Opener','opener', door.opener, di);
     if (door.opener) {
       let opOpts = '<option value="">— Model —</option>';
-      S.pricing?.openers.forEach(op => { opOpts += `<option value="${op.model}"${door.openerModel===op.model?' selected':''}>${op.model} — ${op.description} (${fmt(op.bundlePrice)} w/ install)</option>`; });
+      S.pricing?.openers.forEach(op => {
+        const priceLabel = op.manualPrice ? 'custom price — enter below' : `${fmt(op.bundlePrice)} w/ install`;
+        opOpts += `<option value="${op.model}"${door.openerModel===op.model?' selected':''}>${op.model} — ${op.description} (${priceLabel})</option>`;
+      });
       dform.innerHTML += `<div class="cf-sub"><div class="cf-form" style="padding:8px 0 0 0">${rowHtml([fieldHtml('Opener Model',`<select onchange="cfDoorSet(${di},'openerModel',this.value)">${opOpts}</select>`)])}</div></div>`;
     }
     dform.innerHTML += toggleRowHtml('Premium Glass','premiumGlass', door.premiumGlass, di);
@@ -986,6 +1004,16 @@ function renderConfigBody() {
     addBtn.innerHTML = '+ Add Door';
     addBtn.onclick = cfAddDoor;
     sec3.appendChild(addBtn);
+  }
+
+  if (hasManualOpener(o)) {
+    const manualForm = makeForm();
+    manualForm.innerHTML += rowHtml([fieldHtml(
+      'Custom Opener Price ($) — total for this option, install included',
+      `<input type="number" placeholder="0" min="0" step="1" value="${o.openerCustomPrice||''}" oninput="opt().openerCustomPrice=parseFloat(this.value)||0;updateConfigPrice()">`,
+      'max-width:200px'
+    )]);
+    sec3.appendChild(manualForm);
   }
   body.appendChild(sec3);
 
@@ -1050,6 +1078,7 @@ function cfDoorSet(di, field, val) {
   opt().doors[di][field] = val;
   if (field==='opener' && !val) opt().doors[di].openerModel='';
   if (field==='size') opt().insertStyle=''; // re-validate 2-car inserts
+  if ((field==='opener' || field==='openerModel') && !hasManualOpener(opt())) opt().openerCustomPrice = 0;
   renderConfigBody();
 }
 
@@ -1073,6 +1102,7 @@ function validateConfig(o) {
     if (!d.size) errs.push(`Door ${i+1} size`);
     if (d.opener && !d.openerModel) errs.push(`Door ${i+1} opener model`);
   });
+  if (hasManualOpener(o) && !(o.openerCustomPrice > 0)) errs.push('Custom opener price');
   if (o.windows && o.manufacturer==='Haas' && !o.windowType) errs.push('Window Type');
   if (o.inserts && !o.insertStyle) errs.push('Insert Style');
   return errs;
@@ -1190,7 +1220,11 @@ function buildPrintOption(opt) {
   const openers = opt.doors.filter(d => d.opener && d.openerModel);
   if (openers.length) {
     const op = S.pricing?.openers.find(o => o.model===openers[0].openerModel);
-    if (op) details.push(`LiftMaster ${op.model}${openers.length>1?' (&times;'+openers.length+')':''}`);
+    if (op) {
+      const label = op.brand && op.brand!==op.model ? `${op.brand} ${op.model}` : (op.brand||op.model);
+      const suffix = (!op.manualPrice && openers.length>1) ? ' (&times;'+openers.length+')' : '';
+      details.push(`${label}${suffix}`);
+    }
   }
   if (opt.nonStandardDesc && opt.nonStandardAmt) {
     details.push(`${escHtml(opt.nonStandardDesc)} &middot; ${fmt(opt.nonStandardAmt)}`);
