@@ -995,7 +995,7 @@ function renderConfigBody() {
       const selectedOp = S.pricing?.openers.find(op => op.model===door.openerModel);
       const firstManualIdx = o.doors.findIndex(d => d.opener && d.openerModel && S.pricing?.openers.find(op=>op.model===d.openerModel)?.manualPrice);
       if (selectedOp?.manualPrice && firstManualIdx===di) {
-        openerFields.push(fieldHtml('Custom Price ($) — total for this option',
+        openerFields.push(fieldHtml('Custom Price ($)',
           `<input type="number" placeholder="0" min="0" step="1" value="${o.openerCustomPrice||''}" oninput="opt().openerCustomPrice=parseFloat(this.value)||0;updateConfigPrice()">`,
           'max-width:140px'));
       }
