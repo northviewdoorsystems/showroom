@@ -533,7 +533,7 @@ function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
 
 // ═══ PRODUCT DATA HELPERS ════════════════════════════════════
 function getChiWindowType(model) {
-  return {'2240':'Short Panel','2206':'Short Panel','2216':'Short Panel','2283':'Short Panel','4240':'Long Panel','4206':'Long Panel','4216':'Long Panel','4283':'Long Panel','5216':'Long Panel','5916':'Long Panel','2516':'Long Panel','5602':'Shoreline Overlay','5600':'Carriage Overlay'}[model] || '';
+  return {'2240':'Short Panel','2206':'Short Panel','2216':'Short Panel','2283':'Short Panel','4240':'Long Panel','4206':'Long Panel','4216':'Long Panel','4283':'Long Panel','5216':'Long Panel','5916':'Long Panel','2516':'Long Panel','2327':'Long Panel','2328':'Long Panel','2347':'Long Panel','2348':'Long Panel','2357':'Long Panel','2358':'Long Panel','5602':'Shoreline Overlay','5600':'Carriage Overlay'}[model] || '';
 }
 function getEffectiveWindowType(opt) {
   return opt.manufacturer === 'Haas' ? opt.windowType : getChiWindowType(opt.model);
