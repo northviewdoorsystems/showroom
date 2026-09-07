@@ -535,6 +535,23 @@ function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
 function getChiWindowType(model) {
   return {'2240':'Short Panel','2206':'Short Panel','2216':'Short Panel','2283':'Short Panel','4240':'Long Panel','4206':'Long Panel','4216':'Long Panel','4283':'Long Panel','5216':'Long Panel','5916':'Long Panel','2516':'Long Panel','2327':'Long Panel','2328':'Long Panel','2347':'Long Panel','2348':'Long Panel','2357':'Long Panel','2358':'Long Panel','5602':'Shoreline Overlay','5600':'Carriage Overlay'}[model] || '';
 }
+// Models where panel design is baked into the model number itself (Haas
+// carriage overlays) rather than being a separately selectable field.
+// Any manufacturer not listed here shows the Panel Design field whenever
+// pricing.json has a panelDesigns[] list for it.
+const PANEL_DESIGN_EXCLUDED_MODELS = { Haas: ['9600', '9200'] };
+function panelDesignApplies(mfr, model) {
+  const pd = S.pricing?.panelDesigns?.[mfr] || [];
+  if (pd.length === 0) return false;
+  return !(PANEL_DESIGN_EXCLUDED_MODELS[mfr] || []).includes(model);
+}
+// Spec card / asset filenames use a single lowercase token per manufacturer
+// (card-haas-600.png, card-chi-2216.png). Manufacturer display text (dropdown
+// label, customer-facing rec cards) keeps its natural spacing — only the
+// filename needs it stripped, e.g. "North Central" -> "northcentral".
+function mfrSlug(mfr) {
+  return (mfr || '').toLowerCase().replace(/\s+/g, '');
+}
 function getEffectiveWindowType(opt) {
   return opt.manufacturer === 'Haas' ? opt.windowType : getChiWindowType(opt.model);
 }
@@ -543,6 +560,7 @@ function checkWoodtone(mfr, model, color) {
   if (!C || !color) return false;
   if (mfr === 'Haas') { const mc = C.Haas[model] || C.Haas; return (mc?.woodgrain||[]).includes(color); }
   if (mfr === 'CHI') return (C.CHI?.[model]?.accentWoodtone||[]).includes(color);
+  if (mfr === 'North Central') return false; // value tier — no woodtone finish offered
   return false;
 }
 function hasManualOpener(opt) {
@@ -591,6 +609,11 @@ function getColorGroups(mfr, model) {
     if (mc.accentWoodtone) groups.push({ label:'Accent Woodtones (premium finish)', colors:mc.accentWoodtone, premium:true });
     if (mc.twoTone) groups.push({ label:'Two Tone', colors:mc.twoTone, premium:false });
     return groups;
+  }
+  if (mfr === 'North Central') {
+    // Value tier — solid colors only, no woodtone/premium finish offered.
+    const mc = C['North Central']?.[model] || C['North Central'];
+    return [{ label:'Solid Colors', colors: mc?.solid || [], premium:false }].filter(g => g.colors.length > 0);
   }
   return [];
 }
@@ -659,9 +682,13 @@ function calcOptionTotal(opt) {
       if (op && !op.manualPrice) openerPrice = op.bundlePrice;
     }
     // Opener is excluded from tax and CC fee — its bundlePrice is already the all-in customer price
-    const markup = (A.markupStandard !== undefined)
+    const baseMarkup = (A.markupStandard !== undefined)
       ? (dd.doorCost >= (A.markupThreshold||0) ? A.markupPremium : A.markupStandard)
       : (A.markup || 0);
+    // Additive per-model override — stacks on top of whichever tier (Standard or
+    // Premium) applied above. Sourced from pricing.json doors[].markupOverride,
+    // which the generator populates from the workbook's "Markup Overrides" sheet.
+    const markup = baseMarkup + (dd.markupOverride || 0);
     preCC += matCost*(1+markup) + labor + tax;
     openerTotal += openerPrice;
   }
@@ -790,7 +817,7 @@ function buildRecCard(opt, idx) {
 
 function specCardHtml(opt) {
   if (!opt.manufacturer || !opt.model) return '<div class="rec-spec-missing">Configure a model to view specs</div>';
-  const filename = `card-${opt.manufacturer.toLowerCase()}-${opt.model.toLowerCase()}.png`;
+  const filename = `card-${mfrSlug(opt.manufacturer)}-${opt.model.toLowerCase()}.png`;
   // We attempt to load — onerror shows fallback
   return `<img src="${filename}" alt="${opt.manufacturer} ${opt.model} specs"
     onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
@@ -838,7 +865,8 @@ function renderConfigBody() {
   // Manufacturer + Model row
   const mfrOpts = `<option value="">— Select —</option>
     <option value="Haas"${o.manufacturer==='Haas'?' selected':''}>Haas</option>
-    <option value="CHI"${o.manufacturer==='CHI'?' selected':''}>CHI</option>`;
+    <option value="CHI"${o.manufacturer==='CHI'?' selected':''}>CHI</option>
+    <option value="North Central"${o.manufacturer==='North Central'?' selected':''}>North Central</option>`;
 
   let modelOpts = '<option value="">— Model —</option>';
   if (o.manufacturer) {
@@ -852,9 +880,10 @@ function renderConfigBody() {
     fieldHtml('Model', `<select onchange="cfSet('model',this.value)"${!o.manufacturer?' disabled':''}>${modelOpts}</select>`)
   ]);
 
-  // Panel Design (Haas only)
-  if (o.manufacturer === 'Haas' && !['9600','9200'].includes(o.model)) {
-    const pd = S.pricing?.panelDesigns?.Haas || [];
+  // Panel Design (shown whenever pricing.json defines a design list for this
+  // manufacturer, except overlay models where design is baked into the model #)
+  if (panelDesignApplies(o.manufacturer, o.model)) {
+    const pd = S.pricing?.panelDesigns?.[o.manufacturer] || [];
     if (pd.length > 0) {
       let pdOpts = '<option value="">— Select Panel Design —</option>';
       pd.forEach(p => { pdOpts += `<option value="${p}"${o.panelDesign===p?' selected':''}>${p}</option>`; });
@@ -903,8 +932,10 @@ function renderConfigBody() {
   const form2 = makeForm();
   form2.style.gap = '0';
 
-  // Windows toggle
-  form2.innerHTML += toggleRowHtml('Windows', 'windows', o.windows);
+  // Windows toggle — only manufacturers with window-type logic get this section
+  if (o.manufacturer === 'Haas' || o.manufacturer === 'CHI') {
+    form2.innerHTML += toggleRowHtml('Windows', 'windows', o.windows);
+  }
 
   if (o.windows) {
     // Window type (Haas only)
@@ -1093,7 +1124,7 @@ function validateConfig(o) {
   const errs = [];
   if (!o.manufacturer) errs.push('Manufacturer');
   if (!o.model) errs.push('Model');
-  if (o.manufacturer==='Haas' && !['9600','9200'].includes(o.model) && !o.panelDesign) errs.push('Panel Design');
+  if (panelDesignApplies(o.manufacturer, o.model) && !o.panelDesign) errs.push('Panel Design');
   if (!o.color) errs.push('Door Color / Finish');
   if (['9600','9200'].includes(o.model) && !o.overlayColor) errs.push('Overlay Color');
   if (!o.doors.length) errs.push('At least one door');
@@ -1174,7 +1205,7 @@ function buildPrintView() {
     if (!opt.manufacturer || !opt.model) {
       return `<div class="print-spec-na">Option ${idx+1}: configure a model to show spec card</div>`;
     }
-    const filename = `card-${opt.manufacturer.toLowerCase()}-${opt.model.toLowerCase()}.png`;
+    const filename = `card-${mfrSlug(opt.manufacturer)}-${opt.model.toLowerCase()}.png`;
     return `<div class="print-spec-card">
       <img src="${filename}" alt="${opt.manufacturer} ${opt.model} specs"
         onerror="this.outerHTML='<div class=\'print-spec-na\'>${opt.manufacturer} ${opt.model}<br>Spec card pending</div>'">
